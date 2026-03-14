@@ -1401,85 +1401,104 @@ function RecipeLibrary({onBack}){
     <div style={{minHeight:"100vh",background:"#0a0f0d",color:"#cce8d4",fontFamily:"'Outfit',sans-serif",paddingBottom:60}}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
       <TopBar onBack={onBack} title="Recipe Library"/>
-      <div style={{maxWidth:680,margin:"0 auto",padding:"0"}}>
+      <div style={{maxWidth:680,margin:"0 auto"}}>
+
         {/* Tab bar */}
         <div style={{display:"flex",borderBottom:"1px solid #243528",background:"#0d1a10"}}>
           {[["folders","📂 Meal Folders"],["my",`⭐ My Recipes (${recipes.length})`]].map(([k,lbl])=>(
             <button key={k} onClick={()=>setLibTab(k)} style={{flex:1,padding:"13px 8px",border:"none",background:"transparent",color:libTab===k?"#3ddc72":"#527860",fontSize:13,fontWeight:libTab===k?700:400,cursor:"pointer",fontFamily:"monospace",borderBottom:`2px solid ${libTab===k?"#3ddc72":"transparent"}`}}>{lbl}</button>
           ))}
         </div>
+
         <div style={{padding:"16px"}}>
-        {libTab==="folders"&&(
-          <div>
-            <div style={{fontSize:11,color:"#527860",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:14}}>Meal Type Folders</div>
-            <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {Object.entries(LIB_FOLDERS).map(([key,folder])=>(
-                <div key={key} onClick={()=>setFolderView(key)}
-                  style={{background:"#112115",border:`1px solid ${folder.color}33`,borderRadius:16,padding:18,cursor:"pointer",transition:"all 0.2s",display:"flex",alignItems:"center",gap:16}}
-                  onMouseEnter={e=>{e.currentTarget.style.background="#172d1c";e.currentTarget.style.borderColor=folder.color+"66";}}
-                  onMouseLeave={e=>{e.currentTarget.style.background="#112115";e.currentTarget.style.borderColor=folder.color+"33";}}>
-                  <div style={{width:52,height:52,borderRadius:14,background:`${folder.color}22`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0}}>{folder.emoji}</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontWeight:800,color:"#edfaf2",fontSize:16,fontFamily:"'Outfit',sans-serif",marginBottom:4}}>{key}</div>
-                    <div style={{fontSize:12,color:"#527860",lineHeight:1.5}}>{folder.recipes.length} recipes · Tap to browse</div>
+
+          {/* FOLDERS TAB */}
+          {libTab==="folders" && (
+            <div>
+              <div style={{fontSize:11,color:"#527860",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:14}}>Meal Type Folders</div>
+              <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                {Object.entries(LIB_FOLDERS).map(([key,folder])=>(
+                  <div key={key} onClick={()=>setFolderView(key)}
+                    style={{background:"#112115",border:`1px solid ${folder.color}33`,borderRadius:16,padding:18,cursor:"pointer",transition:"all 0.2s",display:"flex",alignItems:"center",gap:16}}
+                    onMouseEnter={e=>{e.currentTarget.style.background="#172d1c";e.currentTarget.style.borderColor=folder.color+"66";}}
+                    onMouseLeave={e=>{e.currentTarget.style.background="#112115";e.currentTarget.style.borderColor=folder.color+"33";}}>
+                    <div style={{width:52,height:52,borderRadius:14,background:`${folder.color}22`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0}}>{folder.emoji}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:800,color:"#edfaf2",fontSize:16,fontFamily:"'Outfit',sans-serif",marginBottom:4}}>{key}</div>
+                      <div style={{fontSize:12,color:"#527860",lineHeight:1.5}}>{folder.recipes.length} recipes · Tap to browse</div>
+                    </div>
+                    <div style={{fontSize:20,color:folder.color}}>›</div>
                   </div>
-                  <div style={{fontSize:20,color:folder.color}}>›</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {libTab==="my"&&!addMode&&(
-          <>
-            <button onClick={()=>setAddMode(true)} style={{width:"100%",background:"#3ddc72",color:"#061008",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Outfit',sans-serif",marginBottom:14}}>+ Add New Recipe</button>
-            <div style={{background:"#162019",border:"1px solid #243528",borderRadius:14,padding:14,marginBottom:14}}>
-              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search recipes..."
-                style={{width:"100%",background:"#0d1a10",border:"1px solid #243528",borderRadius:10,padding:"10px 14px",color:"#edfaf2",fontSize:14,outline:"none",fontFamily:"'Outfit',sans-serif",boxSizing:"border-box",marginBottom:10}}/>
-              <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:6,marginBottom:8}}>
-                {LIB_CUISINES.map(c=><button key={c} onClick={()=>setCuisineF(c)} style={{background:cuisineF===c?"#3ddc72":"transparent",color:cuisineF===c?"#061008":"#527860",border:`1px solid ${cuisineF===c?"#3ddc72":"#243528"}`,borderRadius:20,padding:"4px 12px",fontSize:11,whiteSpace:"nowrap",cursor:"pointer",fontFamily:"monospace",fontWeight:cuisineF===c?700:400}}>{c}</button>)}
-              </div>
-              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                {["All","safe","caution","avoid"].map(s=>{const sm=LIB_SAFETY[s]; return<button key={s} onClick={()=>setSafetyF(s)} style={{background:safetyF===s?(sm?.bg||"#0d2015"):"transparent",color:safetyF===s?(sm?.color||"#3ddc72"):"#527860",border:`1px solid ${safetyF===s?(sm?.color||"#3ddc72"):"#243528"}`,borderRadius:20,padding:"4px 12px",fontSize:11,cursor:"pointer",fontFamily:"monospace",textTransform:"capitalize"}}>{s==="All"?"All Safety":sm?.label}</button>;})}
+                ))}
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
-              {filtered.map(r=>{const sm=LIB_SAFETY[r.safetyLevel]; return(
-                <div key={r.id} onClick={()=>setSelected(r)} style={{background:"#162019",border:"1px solid #243528",borderRadius:14,overflow:"hidden",cursor:"pointer"}}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor="#3ddc7266"} onMouseLeave={e=>e.currentTarget.style.borderColor="#243528"}>
-                  <div style={{height:110,background:r.photo?"transparent":"linear-gradient(135deg,#1a3020,#0a1a10)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",position:"relative"}}>
-                    {r.photo?<img src={r.photo} alt={r.dishName} style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<div style={{fontSize:36,opacity:0.4}}>🍽</div>}
-                    <div style={{position:"absolute",top:8,right:8}}><span style={{fontSize:10,color:sm?.color,background:sm?.bg,border:`1px solid ${sm?.color}44`,borderRadius:10,padding:"2px 8px",fontFamily:"monospace"}}>{sm?.label}</span></div>
-                  </div>
-                  <div style={{padding:12}}>
-                    <div style={{fontWeight:700,fontSize:14,color:"#edfaf2",marginBottom:4,lineHeight:1.3}}>{r.dishName}</div>
-                    <div style={{display:"flex",justifyContent:"space-between"}}>
-                      <span style={{fontSize:11,color:"#527860",fontFamily:"monospace"}}>{r.cuisine}</span>
-                      <span style={{fontSize:10,color:"#527860",fontFamily:"monospace"}}>{r.savedAt}</span>
+          )}
+
+          {/* MY RECIPES TAB */}
+          {libTab==="my" && (
+            <div>
+              {!addMode ? (
+                <>
+                  <button onClick={()=>setAddMode(true)} style={{width:"100%",background:"#3ddc72",color:"#061008",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Outfit',sans-serif",marginBottom:14}}>+ Add New Recipe</button>
+                  <div style={{background:"#162019",border:"1px solid #243528",borderRadius:14,padding:14,marginBottom:14}}>
+                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search recipes..."
+                      style={{width:"100%",background:"#0d1a10",border:"1px solid #243528",borderRadius:10,padding:"10px 14px",color:"#edfaf2",fontSize:14,outline:"none",fontFamily:"'Outfit',sans-serif",boxSizing:"border-box",marginBottom:10}}/>
+                    <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:6,marginBottom:8}}>
+                      {LIB_CUISINES.map(c=><button key={c} onClick={()=>setCuisineF(c)} style={{background:cuisineF===c?"#3ddc72":"transparent",color:cuisineF===c?"#061008":"#527860",border:`1px solid ${cuisineF===c?"#3ddc72":"#243528"}`,borderRadius:20,padding:"4px 12px",fontSize:11,whiteSpace:"nowrap",cursor:"pointer",fontFamily:"monospace",fontWeight:cuisineF===c?700:400}}>{c}</button>)}
+                    </div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                      {["All","safe","caution","avoid"].map(s=>{const sm=LIB_SAFETY[s]; return<button key={s} onClick={()=>setSafetyF(s)} style={{background:safetyF===s?(sm?.bg||"#0d2015"):"transparent",color:safetyF===s?(sm?.color||"#3ddc72"):"#527860",border:`1px solid ${safetyF===s?(sm?.color||"#3ddc72"):"#243528"}`,borderRadius:20,padding:"4px 12px",fontSize:11,cursor:"pointer",fontFamily:"monospace",textTransform:"capitalize"}}>{s==="All"?"All Safety":sm?.label}</button>;})}
                     </div>
                   </div>
+                  {filtered.length===0 ? (
+                    <div style={{textAlign:"center",padding:"40px 20px",color:"#527860"}}>
+                      <div style={{fontSize:40,marginBottom:12}}>🌿</div>
+                      <div style={{fontFamily:"monospace",fontSize:14}}>No recipes match your filters.</div>
+                    </div>
+                  ) : (
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
+                      {filtered.map(r=>{const sm=LIB_SAFETY[r.safetyLevel]; return(
+                        <div key={r.id} onClick={()=>setSelected(r)} style={{background:"#162019",border:"1px solid #243528",borderRadius:14,overflow:"hidden",cursor:"pointer"}}
+                          onMouseEnter={e=>e.currentTarget.style.borderColor="#3ddc7266"} onMouseLeave={e=>e.currentTarget.style.borderColor="#243528"}>
+                          <div style={{height:110,background:r.photo?"transparent":"linear-gradient(135deg,#1a3020,#0a1a10)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",position:"relative"}}>
+                            {r.photo?<img src={r.photo} alt={r.dishName} style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<div style={{fontSize:36,opacity:0.4}}>🍽</div>}
+                            <div style={{position:"absolute",top:8,right:8}}><span style={{fontSize:10,color:sm?.color,background:sm?.bg,border:`1px solid ${sm?.color}44`,borderRadius:10,padding:"2px 8px",fontFamily:"monospace"}}>{sm?.label}</span></div>
+                          </div>
+                          <div style={{padding:12}}>
+                            <div style={{fontWeight:700,fontSize:14,color:"#edfaf2",marginBottom:4,lineHeight:1.3}}>{r.dishName}</div>
+                            <div style={{display:"flex",justifyContent:"space-between"}}>
+                              <span style={{fontSize:11,color:"#527860",fontFamily:"monospace"}}>{r.cuisine}</span>
+                              <span style={{fontSize:10,color:"#527860",fontFamily:"monospace"}}>{r.savedAt}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );})}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{background:"#162019",border:"1px solid #243528",borderRadius:16,padding:20}}>
+                  <div style={{fontSize:16,fontWeight:700,color:"#edfaf2",marginBottom:16}}>Add New Recipe</div>
+                  <input value={newDish} onChange={e=>setNewDish(e.target.value)} placeholder="Dish name..."
+                    style={{width:"100%",background:"#0d1a10",border:"1px solid #243528",borderRadius:10,padding:"12px 14px",color:"#edfaf2",fontSize:14,outline:"none",fontFamily:"'Outfit',sans-serif",boxSizing:"border-box",marginBottom:12}}/>
+                  <select value={newCuisine} onChange={e=>setNewCuisine(e.target.value)} style={{width:"100%",background:"#0d1a10",border:"1px solid #243528",borderRadius:10,padding:"10px 14px",color:"#edfaf2",fontSize:14,outline:"none",fontFamily:"'Outfit',sans-serif",marginBottom:12}}>
+                    {LIB_CUISINES.filter(c=>c!=="All").map(c=><option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <div onClick={()=>fileRef.current?.click()} style={{border:"2px dashed #243528",borderRadius:12,padding:20,textAlign:"center",cursor:"pointer",background:"#0d1a10",marginBottom:14}}>
+                    {photoPreview?<img src={photoPreview} alt="preview" style={{maxHeight:130,borderRadius:8,objectFit:"cover",width:"100%"}}/>:<div><div style={{fontSize:28,marginBottom:6}}>📷</div><div style={{fontSize:13,color:"#527860"}}>Tap to add a photo (optional)</div></div>}
+                  </div>
+                  <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} style={{display:"none"}}/>
+                  <div style={{display:"flex",gap:10}}>
+                    <button onClick={()=>setAddMode(false)} style={{flex:1,background:"transparent",border:"1px solid #243528",borderRadius:10,padding:"12px",color:"#527860",fontSize:14,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>Cancel</button>
+                    <button onClick={addRecipe} disabled={loading||!newDish.trim()} style={{flex:2,background:loading?"#1a6e38":"#3ddc72",color:"#061008",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>{loading?"Analyzing...":"✓ Analyze & Save"}</button>
+                  </div>
+                  {loading&&<BounceDots color="#3ddc72"/>}
                 </div>
-              );})}
+              )}
             </div>
-          </>
-        ):(
-          <div style={{background:"#162019",border:"1px solid #243528",borderRadius:16,padding:20}}>
-            <div style={{fontSize:16,fontWeight:700,color:"#edfaf2",marginBottom:16}}>Add New Recipe</div>
-            <input value={newDish} onChange={e=>setNewDish(e.target.value)} placeholder="Dish name..."
-              style={{width:"100%",background:"#0d1a10",border:"1px solid #243528",borderRadius:10,padding:"12px 14px",color:"#edfaf2",fontSize:14,outline:"none",fontFamily:"'Outfit',sans-serif",boxSizing:"border-box",marginBottom:12}}/>
-            <select value={newCuisine} onChange={e=>setNewCuisine(e.target.value)} style={{width:"100%",background:"#0d1a10",border:"1px solid #243528",borderRadius:10,padding:"10px 14px",color:"#edfaf2",fontSize:14,outline:"none",fontFamily:"'Outfit',sans-serif",marginBottom:12}}>
-              {LIB_CUISINES.filter(c=>c!=="All").map(c=><option key={c} value={c}>{c}</option>)}
-            </select>
-            <div onClick={()=>fileRef.current?.click()} style={{border:"2px dashed #243528",borderRadius:12,padding:20,textAlign:"center",cursor:"pointer",background:"#0d1a10",marginBottom:14}}>
-              {photoPreview?<img src={photoPreview} alt="preview" style={{maxHeight:130,borderRadius:8,objectFit:"cover",width:"100%"}}/>:<div><div style={{fontSize:28,marginBottom:6}}>📷</div><div style={{fontSize:13,color:"#527860"}}>Tap to add a photo (optional)</div></div>}
-            </div>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} style={{display:"none"}}/>
-            <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setAddMode(false)} style={{flex:1,background:"transparent",border:"1px solid #243528",borderRadius:10,padding:"12px",color:"#527860",fontSize:14,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>Cancel</button>
-              <button onClick={addRecipe} disabled={loading||!newDish.trim()} style={{flex:2,background:loading?"#1a6e38":"#3ddc72",color:"#061008",border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>{loading?"Analyzing...":"✓ Analyze & Save"}</button>
-            </div>
-            {loading&&<BounceDots color="#3ddc72"/>}
-          </div>
-        )}
+          )}
+
+        </div>
       </div>
     </div>
   );
