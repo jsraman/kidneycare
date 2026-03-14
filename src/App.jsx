@@ -1076,6 +1076,115 @@ function RecipeLibrary({onBack}){
 }
 
 // ══════════════════════════════════════════
+// CONSENT / FIRST LAUNCH SCREEN
+// ══════════════════════════════════════════
+function ConsentScreen({onAgree}){
+  const [scrolled,setScrolled]=useState(false);
+  const [checked,setChecked]=useState(false);
+
+  return(
+    <div style={{minHeight:"100vh",background:"#07100a",color:"#c8e8d0",fontFamily:"'Outfit',sans-serif",display:"flex",flexDirection:"column"}}>
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+
+      {/* Header */}
+      <div style={{background:"radial-gradient(ellipse at 50% 0%,#1a3d22 0%,#07100a 80%)",padding:"36px 24px 24px",textAlign:"center",borderBottom:"1px solid #1e3324"}}>
+        <div style={{fontSize:48,marginBottom:10}}>🫘</div>
+        <h1 style={{margin:"0 0 6px",fontSize:"clamp(28px,7vw,42px)",fontWeight:900,color:"#edfaf2",letterSpacing:-1}}>
+          Kidney<span style={{color:"#3ddc72"}}>Care</span>
+        </h1>
+        <p style={{color:"#527860",fontSize:14,margin:0}}>CKD Vegetarian Nutrition Guide</p>
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{flex:1,overflowY:"auto",padding:"20px 20px 0",maxWidth:520,margin:"0 auto",width:"100%"}}
+        onScroll={e=>{ if(e.target.scrollTop+e.target.clientHeight>=e.target.scrollHeight-40) setScrolled(true); }}>
+
+        {/* Medical disclaimer */}
+        <div style={{background:"#1a1000",border:"2px solid #f0b429",borderRadius:14,padding:16,marginBottom:16}}>
+          <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+            <span style={{fontSize:22,flexShrink:0}}>⚕️</span>
+            <div style={{fontSize:13,fontWeight:800,color:"#f0b429",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1}}>Medical Disclaimer</div>
+          </div>
+          <p style={{margin:0,fontSize:13,color:"#c8a840",lineHeight:1.8}}>
+            KidneyCare is an <strong>informational tool only</strong>. It does not provide medical advice, diagnosis, or treatment. Content is for general information purposes and should not replace professional medical guidance.
+          </p>
+          <p style={{margin:"10px 0 0",fontSize:13,color:"#c8a840",lineHeight:1.8}}>
+            <strong>Always consult your nephrologist, renal dietitian, or qualified healthcare professional</strong> before making any changes to your diet, medications, or treatment plan. Individual CKD management needs vary significantly.
+          </p>
+        </div>
+
+        {/* What the app does */}
+        <div style={{background:"#112115",border:"1px solid #1e3324",borderRadius:14,padding:16,marginBottom:16}}>
+          <div style={{fontSize:12,fontWeight:700,color:"#3ddc72",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>What KidneyCare Does</div>
+          {[
+            ["🔍","Provides general nutritional information about foods for CKD patients"],
+            ["📋","Helps you log and track daily food intake for self-monitoring"],
+            ["🔄","Suggests ingredient substitutions to reduce potassium, sodium and phosphorus"],
+            ["📚","Maintains a personal library of kidney-friendly recipes"],
+            ["⚠️","All nutritional values are estimates and may vary from actual food content"],
+          ].map(([icon,text])=>(
+            <div key={text} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+              <span style={{fontSize:16,flexShrink:0}}>{icon}</span>
+              <span style={{fontSize:13,color:"#c8e8d0",lineHeight:1.6}}>{text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Data privacy */}
+        <div style={{background:"#112115",border:"1px solid #1e3324",borderRadius:14,padding:16,marginBottom:16}}>
+          <div style={{fontSize:12,fontWeight:700,color:"#3ddc72",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>Your Data & Privacy</div>
+          {[
+            ["🔒","All your data is stored only on this device. We never collect or see your personal health information."],
+            ["🤖","Food queries are processed by Anthropic's Claude AI. No personal profile data is sent with these queries."],
+            ["📥","You can export or delete all your data at any time from the Profile screen."],
+            ["⚠️","Clearing your browser site data will permanently delete your KidneyCare data."],
+          ].map(([icon,text])=>(
+            <div key={text} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+              <span style={{fontSize:16,flexShrink:0}}>{icon}</span>
+              <span style={{fontSize:13,color:"#c8e8d0",lineHeight:1.6}}>{text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Age restriction */}
+        <div style={{background:"#112115",border:"1px solid #1e3324",borderRadius:14,padding:16,marginBottom:20}}>
+          <div style={{fontSize:12,fontWeight:700,color:"#3ddc72",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>Important</div>
+          <p style={{margin:0,fontSize:13,color:"#c8e8d0",lineHeight:1.7}}>
+            This app is intended for adults (18+) or minors under the supervision of a parent or guardian and qualified healthcare professional. It is designed to complement — not replace — professional medical care.
+          </p>
+        </div>
+      </div>
+
+      {/* Sticky bottom — checkbox + button */}
+      <div style={{background:"#07100a",borderTop:"1px solid #1e3324",padding:"16px 20px 28px",maxWidth:520,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
+
+        {/* Checkbox */}
+        <div onClick={()=>setChecked(c=>!c)}
+          style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:14,cursor:"pointer",padding:"12px 14px",background:"#112115",borderRadius:12,border:`1px solid ${checked?"#3ddc72":"#1e3324"}`}}>
+          <div style={{width:22,height:22,borderRadius:6,background:checked?"#3ddc72":"transparent",border:`2px solid ${checked?"#3ddc72":"#243528"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+            {checked&&<span style={{color:"#061008",fontSize:14,fontWeight:900}}>✓</span>}
+          </div>
+          <span style={{fontSize:13,color:"#c8e8d0",lineHeight:1.6}}>
+            I understand that KidneyCare is for informational purposes only and is not a substitute for professional medical advice. I will consult my healthcare team before making dietary changes.
+          </span>
+        </div>
+
+        <button onClick={()=>{ if(checked){ LS.set("ckd_consent","true"); onAgree(); }}}
+          disabled={!checked}
+          style={{width:"100%",background:checked?"#3ddc72":"#1e3324",color:checked?"#061008":"#527860",border:"none",borderRadius:12,padding:"16px",fontSize:16,fontWeight:800,cursor:checked?"pointer":"not-allowed",fontFamily:"'Outfit',sans-serif",transition:"all 0.2s",marginBottom:8}}>
+          {checked?"✓ I Agree — Open KidneyCare":"Tick the box above to continue"}
+        </button>
+
+        <p style={{margin:0,fontSize:11,color:"#527860",textAlign:"center",fontFamily:"monospace",lineHeight:1.6}}>
+          Shown once. You can review our full privacy policy in the Profile screen.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
+// ══════════════════════════════════════════
 // HOME SCREEN
 // ══════════════════════════════════════════
 const HOME_FEATURES=[
@@ -1098,12 +1207,9 @@ const HOME_TIPS=[
   "🫚 Ghee and olive oil are both kidney-safe fats in small amounts",
 ];
 
-function HomeScreen({onNavigate,profile}){
+function HomeScreen({onNavigate,profile,stage,limits}){
   const [tipIdx,setTipIdx]=useState(0);
-  const stage=profile.stage||"Stage 3";
-  const limits=profile.useCustomLimits
-    ?Object.fromEntries(NUTRIENTS.map(n=>[n,parseFloat(profile.customLimits?.[n])||CKD_STAGES[stage]?.[n]||0]))
-    :CKD_STAGES[stage]||CKD_STAGES["Stage 3"];
+  // stage and limits passed from App — always in sync with saved profile
 
   useEffect(()=>{
     const t=setInterval(()=>setTipIdx(i=>(i+1)%HOME_TIPS.length),20000);
@@ -1190,38 +1296,31 @@ function HomeScreen({onNavigate,profile}){
 // ROOT APP
 // ══════════════════════════════════════════
 export default function App(){
+  const [consented,setConsented]=useState(()=>LS.get("ckd_consent",null)==="true");
   const [profile,setProfile]=useState(()=>LS.get("ckd_profile",DEFAULT_PROFILE));
   const [screen,setScreen]=useState("home");
-  const [stage,setStage]=useState(()=>LS.get("ckd_profile",DEFAULT_PROFILE)?.stage||"Stage 3");
-  const [limits,setLimits]=useState(()=>{
-    const p=LS.get("ckd_profile",DEFAULT_PROFILE);
-    const s=p.stage||"Stage 3";
-    return p.useCustomLimits
-      ?Object.fromEntries(NUTRIENTS.map(n=>[n,parseFloat(p.customLimits?.[n])||CKD_STAGES[s]?.[n]||0]))
-      :CKD_STAGES[s]||CKD_STAGES["Stage 3"];
-  });
+
+  // Always derive stage and limits from profile — single source of truth
+  const stage = profile.stage||"Stage 3";
+  const limits = profile.useCustomLimits
+    ? Object.fromEntries(NUTRIENTS.map(n=>[n,parseFloat(profile.customLimits?.[n])||CKD_STAGES[stage]?.[n]||0]))
+    : CKD_STAGES[stage]||CKD_STAGES["Stage 3"];
 
   const handleSetProfile=(p)=>{
-    // strip photo if present
     if(p.photo) delete p.photo;
-    setProfile(p);
-    setStage(p.stage||"Stage 3");
-    setLimits(p.useCustomLimits
-      ?Object.fromEntries(NUTRIENTS.map(n=>[n,parseFloat(p.customLimits?.[n])||CKD_STAGES[p.stage]?.[n]||0]))
-      :CKD_STAGES[p.stage]||CKD_STAGES["Stage 3"]);
+    const updated={...p};
+    setProfile(updated);
+    LS.set("ckd_profile",updated);
   };
 
-  const navigate=({screen:s,stage:st,limits:lm})=>{
-    if(st){setStage(st);}
-    if(lm){setLimits(lm);}
-    setScreen(s);
-  };
-
+  const navigate=({screen:s})=>setScreen(s);
   const goHome=()=>setScreen("home");
+
+  if(!consented) return <ConsentScreen onAgree={()=>setConsented(true)}/>;
 
   return(
     <div>
-      {screen==="home"      &&<HomeScreen onNavigate={navigate} profile={profile}/>}
+      {screen==="home"      &&<HomeScreen onNavigate={navigate} profile={profile} stage={stage} limits={limits}/>}
       {screen==="profile"   &&<ProfileScreen onBack={goHome} profile={profile} setProfile={handleSetProfile}/>}
       {screen==="checker"   &&<FoodChecker   onBack={goHome} stage={stage} limits={limits}/>}
       {screen==="tracker"   &&<FoodTracker   onBack={goHome} stage={stage} limits={limits}/>}
