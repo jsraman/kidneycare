@@ -171,110 +171,163 @@ const TRK_CUISINES = {
 
 function FoodTracker({ onBack, stage }) {
   const limits = CKD_STAGES[stage];
+  const todayStr = new Date().toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  const yesterdayStr = new Date(Date.now()-86400000).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+
   const [tab, setTab] = useState("track");
   const [food, setFood] = useState("");
   const [portion, setPortion] = useState("100");
   const [loading, setLoading] = useState(false);
-  const [log, setLog] = useState([]);
+  const [logToday, setLogToday] = useState([]);
+  const [logYesterday, setLogYesterday] = useState([]);
+  const [viewDay, setViewDay] = useState("today");
   const [activeCuisine, setActiveCuisine] = useState("🇮🇳 Indian");
-  const [pendingFood, setPendingFood] = useState(null);
-  const [showModal, setShowModal] = useState(false);
 
-  const totals = log.reduce((acc,item)=>{
-    const s=item.portion/100;
+  // Modal state
+  const [modal, setModal] = useState(null); // { foodName, selectedG, dayTarget }
+
+  const activeLog = viewDay === "today" ? logToday : logYesterday;
+  const setActiveLog = viewDay === "today" ? setLogToday : setLogYesterday;
+
+  const totals = activeLog.reduce((acc,item) => {
+    const s = item.portion / 100;
     return { potassium:acc.potassium+item.potassium*s, sodium:acc.sodium+item.sodium*s, phosphorus:acc.phosphorus+item.phosphorus*s, protein:acc.protein+item.protein*s };
-  },{potassium:0,sodium:0,phosphorus:0,protein:0});
+  }, { potassium:0, sodium:0, phosphorus:0, protein:0 });
 
-  const analyze = async(name,portionG)=>{
+  const analyze = async (name, portionG, dayTarget) => {
     setLoading(true);
     try {
-      const data = await callClaude(`Renal dietitian for CKD ${stage}: analyze "${name}" for vegetarian patient. Return ONLY JSON: {"foodName":"string","safetyLevel":"safe"|"caution"|"avoid","potassium":number,"sodium":number,"phosphorus":number,"protein":number,"potassiumRisk":"low"|"medium"|"high","sodiumRisk":"low"|"medium"|"high","phosphorusRisk":"low"|"medium"|"high","proteinRisk":"low"|"medium"|"high","tip":"string"}`,600);
-      setLog(l=>[...l,{...data,portion:parseInt(portionG)||100,id:Date.now()}]);
-    } catch(e){console.error(e);}
-    finally{setLoading(false);}
+      const data = await callClaude(`Renal dietitian for CKD ${stage}: analyze "${name}" for vegetarian patient. Return ONLY JSON: {"foodName":"string","safetyLevel":"safe"|"caution"|"avoid","potassium":number,"sodium":number,"phosphorus":number,"protein":number,"potassiumRisk":"low"|"medium"|"high","sodiumRisk":"low"|"medium"|"high","phosphorusRisk":"low"|"medium"|"high","proteinRisk":"low"|"medium"|"high","tip":"string"}`, 600);
+      const entry = { ...data, portion: parseInt(portionG)||100, id: Date.now() };
+      if (dayTarget === "yesterday") {
+        setLogYesterday(l => [...l, entry]);
+      } else {
+        setLogToday(l => [...l, entry]);
+      }
+    } catch(e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
-  const sc=s=>s==="safe"?"#3ddc72":s==="caution"?"#f0b429":"#f06060";
-  const sl=s=>s==="safe"?"✓ Safe":s==="caution"?"⚠ Caution":"✗ Avoid";
+  const openModal = (foodName) => {
+    setModal({ foodName, selectedG: 100, dayTarget: "today" });
+  };
+
+  const confirmModal = () => {
+    if (!modal) return;
+    analyze(modal.foodName, modal.selectedG, modal.dayTarget);
+    setModal(null);
+  };
+
+  const sc = s => s==="safe"?"#3ddc72":s==="caution"?"#f0b429":"#f06060";
+  const sl = s => s==="safe"?"✓ Safe":s==="caution"?"⚠ Caution":"✗ Avoid";
 
   return (
-    <div style={{ minHeight:"100vh", background:"#0e0e18", color:"#d8d4f0", fontFamily:"'Outfit',sans-serif", paddingBottom:60 }}>
+    <div style={{ minHeight:"100vh", background:"#0e0e18", color:"#d8d4f0", fontFamily:"'Outfit',sans-serif", paddingBottom:80 }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
       <TopBar onBack={onBack} title="Daily Food Tracker"/>
       <div style={{ maxWidth:600, margin:"0 auto" }}>
         <StageBanner stage={stage}/>
-        <div style={{ display:"flex", borderBottom:"1px solid #2a2a45", background:"#14141f", marginTop:12 }}>
-          {[["track","➕ Add"],["log",`📋 Log (${log.length})`],["totals","📊 Totals"]].map(([k,lbl])=>(
-            <button key={k} onClick={()=>setTab(k)} style={{ flex:1, padding:"12px 8px", border:"none", background:"transparent", color:tab===k?"#e8a838":"#7870a0", fontSize:12, fontWeight:tab===k?700:400, cursor:"pointer", fontFamily:"monospace", borderBottom:`2px solid ${tab===k?"#e8a838":"transparent"}` }}>{lbl}</button>
+
+        {/* Day toggle */}
+        <div style={{ display:"flex", gap:8, padding:"12px 16px 0" }}>
+          {[["today", todayStr],["yesterday", yesterdayStr]].map(([key, label]) => (
+            <button key={key} onClick={() => { setViewDay(key); setTab("log"); }}
+              style={{ flex:1, padding:"10px", border:`2px solid ${viewDay===key?"#e8a838":"#2a2a45"}`, borderRadius:10, background:viewDay===key?"#2a1e00":"#14141f", color:viewDay===key?"#e8a838":"#7870a0", fontSize:12, fontWeight:viewDay===key?700:400, cursor:"pointer", fontFamily:"monospace", transition:"all 0.2s" }}>
+              {key==="today"?"📅":"📆"} {label} {viewDay===key && `(${activeLog.length})`}
+            </button>
           ))}
         </div>
+
+        {/* Tabs */}
+        <div style={{ display:"flex", borderBottom:"1px solid #2a2a45", background:"#14141f", marginTop:10 }}>
+          {[["track","➕ Add Food"],["log",`📋 Log (${activeLog.length})`],["totals","📊 Totals"]].map(([k,lbl]) => (
+            <button key={k} onClick={() => setTab(k)} style={{ flex:1, padding:"12px 8px", border:"none", background:"transparent", color:tab===k?"#e8a838":"#7870a0", fontSize:12, fontWeight:tab===k?700:400, cursor:"pointer", fontFamily:"monospace", borderBottom:`2px solid ${tab===k?"#e8a838":"transparent"}` }}>{lbl}</button>
+          ))}
+        </div>
+
         <div style={{ padding:"16px" }}>
+
+          {/* ADD TAB */}
           {tab==="track" && (
             <div>
-              <div style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:14, padding:18, marginBottom:16 }}>
-                <div style={{ display:"flex", gap:8, marginBottom:10 }}>
-                  <input value={food} onChange={e=>setFood(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(analyze(food,portion),setFood(""),setPortion("100"))}
-                    placeholder="Type any vegetarian food..."
+              {/* Manual entry */}
+              <div style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:14, padding:16, marginBottom:14 }}>
+                <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Manual Entry</div>
+                <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+                  <input value={food} onChange={e=>setFood(e.target.value)} onKeyDown={e=>e.key==="Enter"&&openModal(food)}
+                    placeholder="Type any food name..."
                     style={{ flex:1, background:"#14141f", border:"1px solid #2a2a45", borderRadius:8, padding:"10px 14px", color:"#f4f0ff", fontSize:14, outline:"none", fontFamily:"'Outfit',sans-serif" }}/>
-                  <input value={portion} onChange={e=>setPortion(e.target.value)} placeholder="g"
-                    style={{ width:60, background:"#14141f", border:"1px solid #2a2a45", borderRadius:8, padding:"10px", color:"#f4f0ff", fontSize:14, outline:"none", textAlign:"center", fontFamily:"monospace" }}/>
-                  <button onClick={()=>{if(food.trim()){analyze(food,portion);setFood("");setPortion("100");}}} disabled={loading||!food.trim()}
-                    style={{ background:"#e8a838", color:"#1a0e00", border:"none", borderRadius:8, padding:"10px 14px", fontSize:13, fontWeight:700, cursor:"pointer" }}>+ Add</button>
+                  <button onClick={() => food.trim() && openModal(food)} disabled={!food.trim()}
+                    style={{ background:"#e8a838", color:"#1a0e00", border:"none", borderRadius:8, padding:"10px 16px", fontSize:13, fontWeight:700, cursor:"pointer" }}>Next →</button>
                 </div>
-                {loading && <BounceDots color="#e8a838"/>}
+                <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace" }}>Tap Next → to choose portion size and day</div>
               </div>
+
+              {/* Cuisine quick pick */}
               <div style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:14, padding:16 }}>
                 <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace", textTransform:"uppercase", letterSpacing:1, marginBottom:12 }}>Quick Pick by Cuisine</div>
                 <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:8, marginBottom:12 }}>
-                  {Object.keys(TRK_CUISINES).map(c=>(
-                    <button key={c} onClick={()=>setActiveCuisine(c)} style={{ background:activeCuisine===c?"#e8a838":"#14141f", color:activeCuisine===c?"#1a0e00":"#7870a0", border:`1px solid ${activeCuisine===c?"#e8a838":"#2a2a45"}`, borderRadius:20, padding:"5px 12px", fontSize:11, whiteSpace:"nowrap", cursor:"pointer", fontFamily:"monospace", fontWeight:activeCuisine===c?700:400 }}>{c}</button>
+                  {Object.keys(TRK_CUISINES).map(c => (
+                    <button key={c} onClick={() => setActiveCuisine(c)}
+                      style={{ background:activeCuisine===c?"#e8a838":"#14141f", color:activeCuisine===c?"#1a0e00":"#7870a0", border:`1px solid ${activeCuisine===c?"#e8a838":"#2a2a45"}`, borderRadius:20, padding:"5px 12px", fontSize:11, whiteSpace:"nowrap", cursor:"pointer", fontFamily:"monospace", fontWeight:activeCuisine===c?700:400 }}>{c}</button>
                   ))}
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:8 }}>
-                  {TRK_CUISINES[activeCuisine].map(f=>(
-                    <button key={f} onClick={()=>{setPendingFood(f);setShowModal(true);}} style={{ background:"#14141f", border:"1px solid #2a2a45", borderRadius:10, padding:"10px 12px", color:"#d8d4f0", fontSize:13, cursor:"pointer", textAlign:"left", fontFamily:"'Outfit',sans-serif" }}>{f}</button>
+                  {TRK_CUISINES[activeCuisine].map(f => (
+                    <button key={f} onClick={() => openModal(f)}
+                      style={{ background:"#14141f", border:"1px solid #2a2a45", borderRadius:10, padding:"12px", color:"#d8d4f0", fontSize:13, cursor:"pointer", textAlign:"left", fontFamily:"'Outfit',sans-serif", transition:"all 0.15s" }}
+                      onMouseEnter={e=>{e.currentTarget.style.borderColor="#e8a838";e.currentTarget.style.color="#f4f0ff";}}
+                      onMouseLeave={e=>{e.currentTarget.style.borderColor="#2a2a45";e.currentTarget.style.color="#d8d4f0";}}>
+                      {f}
+                    </button>
                   ))}
                 </div>
               </div>
+
+              {loading && (
+                <div style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:12, padding:16, marginTop:14, display:"flex", alignItems:"center", gap:12 }}>
+                  <BounceDots color="#e8a838"/>
+                  <span style={{ color:"#7870a0", fontSize:13, fontFamily:"monospace" }}>Analyzing nutrition...</span>
+                </div>
+              )}
             </div>
           )}
+
+          {/* LOG TAB */}
           {tab==="log" && (
             <div>
-              {log.length===0 ? (
+              {activeLog.length===0 ? (
                 <div style={{ textAlign:"center", padding:"50px 20px", color:"#7870a0" }}>
                   <div style={{ fontSize:40, marginBottom:12 }}>🥗</div>
-                  <div style={{ fontFamily:"monospace", fontSize:14 }}>No foods logged yet.</div>
+                  <div style={{ fontFamily:"monospace", fontSize:14 }}>No foods logged for {viewDay}.</div>
+                  <button onClick={() => setTab("track")} style={{ marginTop:16, background:"#e8a838", color:"#1a0e00", border:"none", borderRadius:10, padding:"10px 20px", fontSize:13, fontWeight:700, cursor:"pointer" }}>+ Add Food</button>
                 </div>
               ) : (
                 <>
                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:14 }}>
-                    <span style={{ fontSize:12, color:"#7870a0", fontFamily:"monospace" }}>{log.length} items logged</span>
-                    <button onClick={()=>setLog([])} style={{ background:"transparent", border:"1px solid #f0606055", borderRadius:8, padding:"4px 12px", color:"#f06060", fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>Clear All</button>
+                    <span style={{ fontSize:12, color:"#7870a0", fontFamily:"monospace" }}>{activeLog.length} items · {viewDay}</span>
+                    <button onClick={() => setActiveLog([])} style={{ background:"transparent", border:"1px solid #f0606055", borderRadius:8, padding:"4px 12px", color:"#f06060", fontSize:11, cursor:"pointer", fontFamily:"monospace" }}>Clear All</button>
                   </div>
-                  {log.map(item=>{
-                    const s=item.portion/100;
+                  {activeLog.map(item => {
+                    const s = item.portion/100;
                     return (
-                      <div key={item.id} style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:14, padding:16, marginBottom:10 }}>
+                      <div key={item.id} style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:14, padding:14, marginBottom:10, animation:"ckdFade 0.3s ease" }}>
+                        <style>{`@keyframes ckdFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}`}</style>
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
                           <div>
                             <div style={{ fontWeight:600, fontSize:15, color:"#f4f0ff" }}>{item.foodName}</div>
-                            <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace" }}>{item.portion}g</div>
+                            <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace" }}>{item.portion}g · {viewDay}</div>
                           </div>
                           <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                             <span style={{ fontSize:11, color:sc(item.safetyLevel), fontFamily:"monospace", background:`${sc(item.safetyLevel)}22`, padding:"3px 8px", borderRadius:10 }}>{sl(item.safetyLevel)}</span>
-                            <button onClick={()=>setLog(l=>l.filter(x=>x.id!==item.id))} style={{ background:"transparent", border:"none", color:"#7870a0", cursor:"pointer", fontSize:16, padding:2 }}>×</button>
+                            <button onClick={() => setActiveLog(l=>l.filter(x=>x.id!==item.id))} style={{ background:"transparent", border:"none", color:"#7870a0", cursor:"pointer", fontSize:18, padding:2, lineHeight:1 }}>×</button>
                           </div>
                         </div>
-                        <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:8 }}>
-                          {[["K",item.potassium*s,"mg",item.potassiumRisk,limits.potassium/7],["Na",item.sodium*s,"mg",item.sodiumRisk,limits.sodium/7],["P",item.phosphorus*s,"mg",item.phosphorusRisk,limits.phosphorus/7],["Pro",item.protein*s,"g",item.proteinRisk,limits.protein/7]].map(([l,v,u,r,max])=>(
-                            <div key={l}>
-                              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
-                                <span style={{ fontSize:10, color:"#7870a0", fontFamily:"monospace" }}>{l}</span>
-                                <span style={{ fontSize:10, color:getRiskColor(r), fontFamily:"monospace" }}>{Math.round(v)}{u}</span>
-                              </div>
-                              <div style={{ background:"#1a1a30", borderRadius:3, height:4, overflow:"hidden" }}>
-                                <div style={{ width:`${Math.min((v/max)*100,100)}%`, height:"100%", background:getRiskColor(r), borderRadius:3 }}/>
-                              </div>
+                        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
+                          {[["K",item.potassium*s,"mg",item.potassiumRisk],["Na",item.sodium*s,"mg",item.sodiumRisk],["P",item.phosphorus*s,"mg",item.phosphorusRisk],["Pro",item.protein*s,"g",item.proteinRisk]].map(([l,v,u,r]) => (
+                            <div key={l} style={{ background:"#14141f", borderRadius:8, padding:"8px 6px", textAlign:"center" }}>
+                              <div style={{ fontSize:13, fontWeight:700, color:getRiskColor(r), fontFamily:"monospace" }}>{Math.round(v)}{u}</div>
+                              <div style={{ fontSize:9, color:"#7870a0", fontFamily:"monospace", textTransform:"uppercase" }}>{l}</div>
                             </div>
                           ))}
                         </div>
@@ -286,11 +339,21 @@ function FoodTracker({ onBack, stage }) {
               )}
             </div>
           )}
+
+          {/* TOTALS TAB */}
           {tab==="totals" && (
             <div>
-              <div style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:14, padding:20, marginBottom:14 }}>
-                <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace", textTransform:"uppercase", letterSpacing:1, marginBottom:16 }}>Daily Totals vs {stage} Limits</div>
-                {[["Potassium",totals.potassium,limits.potassium,"mg"],["Sodium",totals.sodium,limits.sodium,"mg"],["Phosphorus",totals.phosphorus,limits.phosphorus,"mg"],["Protein",totals.protein,limits.protein,"g"]].map(([l,cur,max,u])=>{
+              <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+                {[["today",todayStr],["yesterday",yesterdayStr]].map(([key,label]) => (
+                  <button key={key} onClick={() => setViewDay(key)}
+                    style={{ flex:1, padding:"8px", border:`1px solid ${viewDay===key?"#e8a838":"#2a2a45"}`, borderRadius:10, background:viewDay===key?"#2a1e00":"transparent", color:viewDay===key?"#e8a838":"#7870a0", fontSize:12, fontWeight:viewDay===key?700:400, cursor:"pointer", fontFamily:"monospace" }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:14, padding:18, marginBottom:14 }}>
+                <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace", textTransform:"uppercase", letterSpacing:1, marginBottom:14 }}>Totals vs {stage} Limits</div>
+                {[["Potassium",totals.potassium,limits.potassium,"mg"],["Sodium",totals.sodium,limits.sodium,"mg"],["Phosphorus",totals.phosphorus,limits.phosphorus,"mg"],["Protein",totals.protein,limits.protein,"g"]].map(([l,cur,max,u]) => {
                   const pct=Math.min((cur/max)*100,100);
                   const over=cur>max;
                   const col=over?"#f06060":pct>75?"#f0b429":"#3ddc72";
@@ -308,7 +371,7 @@ function FoodTracker({ onBack, stage }) {
                 })}
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10 }}>
-                {[["Potassium",totals.potassium,limits.potassium,"mg"],["Sodium",totals.sodium,limits.sodium,"mg"],["Phosphorus",totals.phosphorus,limits.phosphorus,"mg"],["Protein",totals.protein,limits.protein,"g"]].map(([l,v,lim,u])=>{
+                {[["Potassium",totals.potassium,limits.potassium,"mg"],["Sodium",totals.sodium,limits.sodium,"mg"],["Phosphorus",totals.phosphorus,limits.phosphorus,"mg"],["Protein",totals.protein,limits.protein,"g"]].map(([l,v,lim,u]) => {
                   const pct=Math.round((v/lim)*100);
                   const col=pct>100?"#f06060":pct>75?"#f0b429":"#3ddc72";
                   return <div key={l} style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:12, padding:14, textAlign:"center" }}>
@@ -322,23 +385,53 @@ function FoodTracker({ onBack, stage }) {
           )}
         </div>
       </div>
-      {showModal && (
-        <div style={{ position:"fixed", inset:0, background:"#000000bb", display:"flex", alignItems:"center", justifyContent:"center", zIndex:100, padding:20 }}>
-          <div style={{ background:"#1a1a2e", border:"1px solid #2a2a45", borderRadius:16, padding:24, width:"100%", maxWidth:300 }}>
-            <div style={{ fontWeight:600, color:"#f4f0ff", fontSize:16, marginBottom:6 }}>{pendingFood}</div>
-            <div style={{ fontSize:12, color:"#7870a0", fontFamily:"monospace", marginBottom:16 }}>How much are you eating?</div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:14 }}>
-              {[50,100,150,200,250,300].map(g=>(
-                <button key={g} onClick={()=>{analyze(pendingFood,g);setShowModal(false);setPendingFood(null);}} style={{ background:"#14141f", border:"1px solid #2a2a45", borderRadius:10, padding:"11px 8px", color:"#d8d4f0", fontSize:14, cursor:"pointer", fontFamily:"monospace", fontWeight:600 }}>{g}g</button>
+
+      {/* ── PORTION MODAL ── */}
+      {modal && (
+        <div style={{ position:"fixed", inset:0, background:"#000000cc", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:200, padding:"0 0 0 0" }}>
+          <div style={{ background:"#1a1a2e", borderRadius:"20px 20px 0 0", padding:"24px 20px 28px", width:"100%", maxWidth:480, border:"1px solid #2a2a45" }}>
+            <div style={{ fontWeight:700, color:"#f4f0ff", fontSize:18, marginBottom:4, fontFamily:"'Outfit',sans-serif" }}>{modal.foodName}</div>
+            <div style={{ fontSize:12, color:"#7870a0", fontFamily:"monospace", marginBottom:20 }}>Choose portion size and which day to log</div>
+
+            {/* Portion buttons */}
+            <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Portion Size</div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:20 }}>
+              {[50,75,100,150,200,250,300,350,400].map(g => (
+                <button key={g} onClick={() => setModal(m => ({...m, selectedG: g}))}
+                  style={{ background:modal.selectedG===g?"#e8a838":"#14141f", border:`2px solid ${modal.selectedG===g?"#e8a838":"#2a2a45"}`, borderRadius:10, padding:"12px 8px", color:modal.selectedG===g?"#1a0e00":"#d8d4f0", fontSize:14, cursor:"pointer", fontFamily:"monospace", fontWeight:modal.selectedG===g?800:500, transition:"all 0.15s" }}>
+                  {g}g
+                </button>
               ))}
             </div>
-            <button onClick={()=>setShowModal(false)} style={{ width:"100%", background:"transparent", border:"1px solid #2a2a45", borderRadius:10, padding:10, color:"#7870a0", fontSize:13, cursor:"pointer", fontFamily:"monospace" }}>Cancel</button>
+
+            {/* Day selection + Add buttons */}
+            <div style={{ fontSize:11, color:"#7870a0", fontFamily:"monospace", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Add to which day?</div>
+            <div style={{ display:"flex", gap:10, marginBottom:14 }}>
+              <button onClick={() => { setModal(m=>({...m,dayTarget:"today"})); }}
+                style={{ flex:1, background:modal.dayTarget==="today"?"#1a3a1a":"#14141f", border:`2px solid ${modal.dayTarget==="today"?"#3ddc72":"#2a2a45"}`, borderRadius:12, padding:"14px 10px", color:modal.dayTarget==="today"?"#3ddc72":"#7870a0", fontSize:13, fontWeight:modal.dayTarget==="today"?700:400, cursor:"pointer", fontFamily:"monospace", textAlign:"center" }}>
+                📅 Today<br/><span style={{ fontSize:10 }}>{todayStr}</span>
+              </button>
+              <button onClick={() => { setModal(m=>({...m,dayTarget:"yesterday"})); }}
+                style={{ flex:1, background:modal.dayTarget==="yesterday"?"#1a1a3a":"#14141f", border:`2px solid ${modal.dayTarget==="yesterday"?"#a080f0":"#2a2a45"}`, borderRadius:12, padding:"14px 10px", color:modal.dayTarget==="yesterday"?"#a080f0":"#7870a0", fontSize:13, fontWeight:modal.dayTarget==="yesterday"?700:400, cursor:"pointer", fontFamily:"monospace", textAlign:"center" }}>
+                📆 Yesterday<br/><span style={{ fontSize:10 }}>{yesterdayStr}</span>
+              </button>
+            </div>
+
+            <button onClick={confirmModal}
+              style={{ width:"100%", background:"#e8a838", color:"#1a0e00", border:"none", borderRadius:12, padding:"15px", fontSize:15, fontWeight:800, cursor:"pointer", fontFamily:"'Outfit',sans-serif", marginBottom:10 }}>
+              ✓ Add {modal.selectedG}g to {modal.dayTarget === "today" ? todayStr : yesterdayStr}
+            </button>
+            <button onClick={() => setModal(null)}
+              style={{ width:"100%", background:"transparent", border:"1px solid #2a2a45", borderRadius:12, padding:"12px", color:"#7870a0", fontSize:14, cursor:"pointer", fontFamily:"monospace" }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
     </div>
   );
 }
+
 
 // ══════════════════════════════════════════
 // RECIPE CONVERTER
