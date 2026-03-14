@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { lookupFood } from "./foodData";
 
 const API_MODEL = "claude-sonnet-4-20250514";
 
@@ -35,10 +36,18 @@ const pastDays = (n)=> Array.from({length:n},(_,i)=>{ const d=new Date(); d.setD
 function getRiskColor(r){ return r==="high"?"#f06060":r==="medium"?"#f0b429":"#3ddc72"; }
 
 function callClaude(prompt,maxTokens){
-  return fetch("https://api.anthropic.com/v1/messages",{
+  // Route through our Vercel proxy so API key stays secret on the server
+  const endpoint = window.location.hostname==="localhost"
+    ? "http://localhost:3000/api/claude"
+    : "/api/claude";
+  return fetch(endpoint,{
     method:"POST", headers:{"Content-Type":"application/json"},
     body:JSON.stringify({model:API_MODEL, max_tokens:maxTokens||1000, messages:[{role:"user",content:prompt}]}),
-  }).then(r=>r.json()).then(d=>{
+  }).then(r=>{
+    if(!r.ok) throw new Error("API error: "+r.status);
+    return r.json();
+  }).then(d=>{
+    if(d.error) throw new Error(d.error);
     const text=d.content?.map(b=>b.text||"").join("")||"";
     return JSON.parse(text.replace(/```json|```/g,"").trim());
   });
@@ -321,6 +330,28 @@ function FoodChecker({onBack,stage,limits}){
     if(!food.trim()) return;
     setLoading(true); setResult(null); setError(null);
     try{
+      // Try pre-built database first — instant, no API cost
+      const cached=lookupFood(food);
+      if(cached){
+        // Reshape to match checker format
+        const data={
+          foodName: cached.foodName,
+          safetyLevel: cached.safetyLevel,
+          potassium:{ per100g: cached.potassium, risk: cached.potassiumRisk },
+          sodium:{ per100g: cached.sodium, risk: cached.sodiumRisk },
+          phosphorus:{ per100g: cached.phosphorus, risk: cached.phosphorusRisk },
+          protein:{ per100g: cached.protein, risk: cached.proteinRisk },
+          ckdNote: cached.ckdNote,
+          tip: cached.tip,
+          vegetarianStatus: cached.vegetarianStatus,
+          fromCache: true,
+        };
+        setResult(data);
+        setHistory(h=>[{food:data.foodName,level:data.safetyLevel},...h.slice(0,4)]);
+        setLoading(false);
+        return;
+      }
+      // Not in local DB — call AI API
       const data=await callClaude(`You are a renal dietitian for CKD ${stage}. Daily limits: K ${limits.potassium}mg, Na ${limits.sodium}mg, P ${limits.phosphorus}mg, Pro ${limits.protein}g. Analyze: "${food}". Return ONLY valid JSON:
 {"foodName":"string","safetyLevel":"safe"|"caution"|"avoid","potassium":{"per100g":number,"risk":"low"|"medium"|"high"},"sodium":{"per100g":number,"risk":"low"|"medium"|"high"},"phosphorus":{"per100g":number,"risk":"low"|"medium"|"high"},"protein":{"per100g":number,"risk":"low"|"medium"|"high"},"ckdNote":"1-2 sentence summary for ${stage}","tip":"one practical tip","vegetarianStatus":"vegan"|"vegetarian"|"not-vegetarian"}`);
       setResult(data);
@@ -363,7 +394,11 @@ function FoodChecker({onBack,stage,limits}){
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14,flexWrap:"wrap",gap:8}}>
                 <div>
                   <div style={{fontSize:20,fontWeight:800,color:"#edfaf2"}}>{result.foodName}</div>
-                  <div style={{fontSize:11,color:"#527860",fontFamily:"monospace"}}>{result.vegetarianStatus==="vegan"?"🌱 Vegan":result.vegetarianStatus==="vegetarian"?"🥚 Vegetarian":"⚠ Not Vegetarian"}</div>
+                  <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                    <div style={{fontSize:11,color:"#527860",fontFamily:"monospace"}}>{result.vegetarianStatus==="vegan"?"🌱 Vegan":result.vegetarianStatus==="vegetarian"?"🥚 Vegetarian":"⚠ Not Vegetarian"}</div>
+                    {result.fromCache&&<div style={{fontSize:10,color:"#3ddc72",fontFamily:"monospace",background:"#0d2015",borderRadius:8,padding:"2px 8px"}}>⚡ Instant result</div>}
+                    {!result.fromCache&&<div style={{fontSize:10,color:"#a080f0",fontFamily:"monospace",background:"#1a0f2e",borderRadius:8,padding:"2px 8px"}}>🤖 AI analyzed</div>}
+                  </div>
                 </div>
                 <span style={{fontSize:12,color:sc[result.safetyLevel],background:`${sc[result.safetyLevel]}18`,border:`1px solid ${sc[result.safetyLevel]}44`,borderRadius:10,padding:"5px 14px",fontFamily:"monospace",fontWeight:700}}>{sl[result.safetyLevel]}</span>
               </div>
@@ -940,8 +975,10 @@ function RecipeLibrary({onBack}){
       ?[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:photo}},{type:"text",text:`Renal dietitian. Dish: "${newDish}", cuisine: ${newCuisine}. Return ONLY JSON: {"dishName":"string","safetyLevel":"safe"|"caution"|"avoid","ingredients":[{"name":"string","amount":"string","ckdRisk":"low"|"medium"|"high"}],"substitutions":[{"original":"string","substitute":"string","reduction":"string"}],"nutritionPerServing":{"potassium":number,"sodium":number,"phosphorus":number,"protein":number},"nutritionAfterSwaps":{"potassium":number,"sodium":number,"phosphorus":number,"protein":number},"dietitianNote":"string","topTip":"string"}`}]}]
       :[{role:"user",content:`Renal dietitian. Dish: "${newDish}", cuisine: ${newCuisine}. Return ONLY JSON: {"dishName":"string","safetyLevel":"safe"|"caution"|"avoid","ingredients":[{"name":"string","amount":"string","ckdRisk":"low"|"medium"|"high"}],"substitutions":[{"original":"string","substitute":"string","reduction":"string"}],"nutritionPerServing":{"potassium":number,"sodium":number,"phosphorus":number,"protein":number},"nutritionAfterSwaps":{"potassium":number,"sodium":number,"phosphorus":number,"protein":number},"dietitianNote":"string","topTip":"string"}`}];
     try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:API_MODEL,max_tokens:1200,messages:msgs})});
+      const endpoint=window.location.hostname==="localhost"?"http://localhost:3000/api/claude":"/api/claude";
+      const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:API_MODEL,max_tokens:1200,messages:msgs})});
       const data=await res.json();
+      if(data.error) throw new Error(data.error);
       const text=data.content?.map(b=>b.text||"").join("")||"";
       const parsed=JSON.parse(text.replace(/```json|```/g,"").trim());
       const entry={...parsed,id:Date.now(),savedAt:new Date().toLocaleDateString(),cuisine:newCuisine,servings:4,photo:photoPreview||null};
