@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
-// ─────────────────────────────────────────────
+const API_MODEL = "claude-sonnet-4-20250514";
+
+// ══════════════════════════════════════════
 // FOOD CHECKER
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 
-const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 
-const COLORS = {
+const CHK_COLORS = {
   bg: "#0f1a14",
   surface: "#162010",
   card: "#1c2b18",
@@ -21,23 +22,23 @@ const COLORS = {
   white: "#f0f7ea",
 };
 
-const badgeStyle = (level) => {
+const chkBadgeStyle = (level) => {
   const map = {
-    safe: { bg: "#1a3d1a", color: COLORS.safe, label: "✓ CKD Safe" },
-    caution: { bg: "#3d2e0a", color: COLORS.warn, label: "⚠ Use Caution" },
-    avoid: { bg: "#3d1010", color: COLORS.danger, label: "✗ Avoid" },
+    safe: { bg: "#1a3d1a", color: CHK_COLORS.safe, label: "✓ CKD Safe" },
+    caution: { bg: "#3d2e0a", color: CHK_COLORS.warn, label: "⚠ Use Caution" },
+    avoid: { bg: "#3d1010", color: CHK_COLORS.danger, label: "✗ Avoid" },
   };
   const s = map[level] || map["caution"];
   return { ...s };
 };
 
-function NutrientBar({ label, value, max, unit, color }) {
+function ChkNutrientBar({ label, value, max, unit, color }) {
   const pct = Math.min((value / max) * 100, 100);
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ color: COLORS.muted, fontSize: 12, fontFamily: "'DM Mono', monospace" }}>{label}</span>
-        <span style={{ color: COLORS.text, fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
+        <span style={{ color: CHK_COLORS.muted, fontSize: 12, fontFamily: "'DM Mono', monospace" }}>{label}</span>
+        <span style={{ color: CHK_COLORS.text, fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
           {value}{unit}
         </span>
       </div>
@@ -56,7 +57,7 @@ function NutrientBar({ label, value, max, unit, color }) {
   );
 }
 
-function LoadingDots() {
+function ChkLoadingDots() {
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "center", padding: "32px 0" }}>
       {[0, 1, 2].map((i) => (
@@ -66,7 +67,7 @@ function LoadingDots() {
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: COLORS.accent,
+            background: CHK_COLORS.accent,
             animation: `bounce 1.2s ${i * 0.2}s infinite ease-in-out`,
           }}
         />
@@ -118,7 +119,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: ANTHROPIC_MODEL,
+          model: API_MODEL,
           max_tokens: 1000,
           messages: [{ role: "user", content: prompt }],
         }),
@@ -141,29 +142,29 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
     if (e.key === "Enter") checkFood();
   };
 
-  const badge = result ? badgeStyle(result.safetyLevel) : null;
+  const badge = result ? chkBadgeStyle(result.safetyLevel) : null;
 
   return (
     <div style={{
       minHeight: "100vh",
-      background: COLORS.bg,
+      background: CHK_COLORS.bg,
       fontFamily: "'DM Sans', sans-serif",
-      color: COLORS.text,
+      color: CHK_COLORS.text,
       padding: "0 0 60px",
     }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
 
       {/* Header */}
       <div style={{
-        background: `linear-gradient(180deg, #0a1209 0%, ${COLORS.bg} 100%)`,
-        borderBottom: `1px solid ${COLORS.border}`,
+        background: `linear-gradient(180deg, #0a1209 0%, ${CHK_COLORS.bg} 100%)`,
+        borderBottom: `1px solid ${CHK_COLORS.border}`,
         padding: "40px 24px 32px",
         textAlign: "center",
       }}>
         <div style={{
           display: "inline-block",
-          background: COLORS.accentDim,
-          color: COLORS.white,
+          background: CHK_COLORS.accentDim,
+          color: CHK_COLORS.white,
           fontSize: 11,
           fontFamily: "'DM Mono', monospace",
           letterSpacing: 2,
@@ -178,14 +179,14 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
           fontFamily: "'Playfair Display', serif",
           fontSize: "clamp(28px, 6vw, 48px)",
           fontWeight: 700,
-          color: COLORS.white,
+          color: CHK_COLORS.white,
           margin: "0 0 8px",
           lineHeight: 1.2,
         }}>
           Is This Food Safe<br />
-          <span style={{ color: COLORS.accent }}>for My Kidneys?</span>
+          <span style={{ color: CHK_COLORS.accent }}>for My Kidneys?</span>
         </h1>
-        <p style={{ color: COLORS.muted, fontSize: 15, margin: 0, maxWidth: 400, marginInline: "auto" }}>
+        <p style={{ color: CHK_COLORS.muted, fontSize: 15, margin: 0, maxWidth: 400, marginInline: "auto" }}>
           Instant potassium, phosphorus, sodium & protein analysis for CKD vegetarians
         </p>
       </div>
@@ -194,13 +195,13 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
 
         {/* Search */}
         <div style={{
-          background: COLORS.card,
-          border: `1px solid ${COLORS.border}`,
+          background: CHK_COLORS.card,
+          border: `1px solid ${CHK_COLORS.border}`,
           borderRadius: 16,
           padding: 20,
           marginBottom: 24,
         }}>
-          <label style={{ display: "block", fontSize: 12, color: COLORS.muted, fontFamily: "'DM Mono', monospace", letterSpacing: 1, marginBottom: 10, textTransform: "uppercase" }}>
+          <label style={{ display: "block", fontSize: 12, color: CHK_COLORS.muted, fontFamily: "'DM Mono', monospace", letterSpacing: 1, marginBottom: 10, textTransform: "uppercase" }}>
             Enter a food
           </label>
           <div style={{ display: "flex", gap: 10 }}>
@@ -211,11 +212,11 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
               placeholder="e.g. spinach, lentils, tofu..."
               style={{
                 flex: 1,
-                background: COLORS.surface,
-                border: `1px solid ${COLORS.border}`,
+                background: CHK_COLORS.surface,
+                border: `1px solid ${CHK_COLORS.border}`,
                 borderRadius: 10,
                 padding: "12px 16px",
-                color: COLORS.white,
+                color: CHK_COLORS.white,
                 fontSize: 15,
                 outline: "none",
                 fontFamily: "'DM Sans', sans-serif",
@@ -225,7 +226,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
               onClick={checkFood}
               disabled={loading || !food.trim()}
               style={{
-                background: loading ? COLORS.accentDim : COLORS.accent,
+                background: loading ? CHK_COLORS.accentDim : CHK_COLORS.accent,
                 color: "#0a1a08",
                 border: "none",
                 borderRadius: 10,
@@ -250,10 +251,10 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
                 onClick={() => { setFood(f); }}
                 style={{
                   background: "transparent",
-                  border: `1px solid ${COLORS.border}`,
+                  border: `1px solid ${CHK_COLORS.border}`,
                   borderRadius: 20,
                   padding: "4px 12px",
-                  color: COLORS.muted,
+                  color: CHK_COLORS.muted,
                   fontSize: 12,
                   cursor: "pointer",
                   fontFamily: "'DM Mono', monospace",
@@ -267,11 +268,11 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
         </div>
 
         {/* Loading */}
-        {loading && <LoadingDots />}
+        {loading && <ChkLoadingDots />}
 
         {/* Error */}
         {error && (
-          <div style={{ background: "#2d1010", border: `1px solid #5a2020`, borderRadius: 12, padding: 16, color: COLORS.danger, fontSize: 14 }}>
+          <div style={{ background: "#2d1010", border: `1px solid #5a2020`, borderRadius: 12, padding: 16, color: CHK_COLORS.danger, fontSize: 14 }}>
             {error}
           </div>
         )}
@@ -283,18 +284,18 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
 
             {/* Safety badge */}
             <div style={{
-              background: COLORS.card,
-              border: `1px solid ${COLORS.border}`,
+              background: CHK_COLORS.card,
+              border: `1px solid ${CHK_COLORS.border}`,
               borderRadius: 16,
               padding: 24,
               marginBottom: 16,
             }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: 22, color: COLORS.white, fontFamily: "'Playfair Display', serif" }}>
+                  <h2 style={{ margin: 0, fontSize: 22, color: CHK_COLORS.white, fontFamily: "'Playfair Display', serif" }}>
                     {result.foodName}
                   </h2>
-                  <span style={{ fontSize: 11, color: COLORS.muted, fontFamily: "'DM Mono', monospace" }}>
+                  <span style={{ fontSize: 11, color: CHK_COLORS.muted, fontFamily: "'DM Mono', monospace" }}>
                     {result.vegetarianStatus === "vegan" ? "🌱 Vegan" : result.vegetarianStatus === "vegetarian" ? "🥚 Vegetarian" : "⚠ Not Vegetarian"}
                   </span>
                 </div>
@@ -312,30 +313,30 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
                 </div>
               </div>
 
-              <p style={{ color: COLORS.text, fontSize: 14, lineHeight: 1.6, margin: "0 0 20px", background: COLORS.surface, borderRadius: 10, padding: 14 }}>
+              <p style={{ color: CHK_COLORS.text, fontSize: 14, lineHeight: 1.6, margin: "0 0 20px", background: CHK_COLORS.surface, borderRadius: 10, padding: 14 }}>
                 {result.ckdNote}
               </p>
 
               {/* Nutrient bars */}
               <div>
-                <div style={{ fontSize: 11, color: COLORS.muted, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>
+                <div style={{ fontSize: 11, color: CHK_COLORS.muted, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>
                   Per 100g
                 </div>
-                <NutrientBar label="Potassium" value={result.potassium.per100g} max={500} unit="mg"
-                  color={result.potassium.risk === "high" ? COLORS.danger : result.potassium.risk === "medium" ? COLORS.warn : COLORS.safe} />
-                <NutrientBar label="Sodium" value={result.sodium.per100g} max={400} unit="mg"
-                  color={result.sodium.risk === "high" ? COLORS.danger : result.sodium.risk === "medium" ? COLORS.warn : COLORS.safe} />
-                <NutrientBar label="Phosphorus" value={result.phosphorus.per100g} max={300} unit="mg"
-                  color={result.phosphorus.risk === "high" ? COLORS.danger : result.phosphorus.risk === "medium" ? COLORS.warn : COLORS.safe} />
-                <NutrientBar label="Protein" value={result.protein.per100g} max={30} unit="g"
-                  color={result.protein.risk === "high" ? COLORS.danger : result.protein.risk === "medium" ? COLORS.warn : COLORS.safe} />
+                <ChkNutrientBar label="Potassium" value={result.potassium.per100g} max={500} unit="mg"
+                  color={result.potassium.risk === "high" ? CHK_COLORS.danger : result.potassium.risk === "medium" ? CHK_COLORS.warn : CHK_COLORS.safe} />
+                <ChkNutrientBar label="Sodium" value={result.sodium.per100g} max={400} unit="mg"
+                  color={result.sodium.risk === "high" ? CHK_COLORS.danger : result.sodium.risk === "medium" ? CHK_COLORS.warn : CHK_COLORS.safe} />
+                <ChkNutrientBar label="Phosphorus" value={result.phosphorus.per100g} max={300} unit="mg"
+                  color={result.phosphorus.risk === "high" ? CHK_COLORS.danger : result.phosphorus.risk === "medium" ? CHK_COLORS.warn : CHK_COLORS.safe} />
+                <ChkNutrientBar label="Protein" value={result.protein.per100g} max={30} unit="g"
+                  color={result.protein.risk === "high" ? CHK_COLORS.danger : result.protein.risk === "medium" ? CHK_COLORS.warn : CHK_COLORS.safe} />
               </div>
             </div>
 
             {/* Tip */}
             <div style={{
               background: "#162310",
-              border: `1px solid ${COLORS.accentDim}`,
+              border: `1px solid ${CHK_COLORS.accentDim}`,
               borderRadius: 12,
               padding: 16,
               display: "flex",
@@ -344,8 +345,8 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
             }}>
               <span style={{ fontSize: 20 }}>💡</span>
               <div>
-                <div style={{ fontSize: 11, color: COLORS.accent, fontFamily: "'DM Mono', monospace", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Dietitian Tip</div>
-                <p style={{ margin: 0, fontSize: 14, color: COLORS.text, lineHeight: 1.6 }}>{result.tip}</p>
+                <div style={{ fontSize: 11, color: CHK_COLORS.accent, fontFamily: "'DM Mono', monospace", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Dietitian Tip</div>
+                <p style={{ margin: 0, fontSize: 14, color: CHK_COLORS.text, lineHeight: 1.6 }}>{result.tip}</p>
               </div>
             </div>
           </div>
@@ -354,18 +355,18 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
         {/* History */}
         {history.length > 0 && (
           <div style={{ marginTop: 32 }}>
-            <div style={{ fontSize: 11, color: COLORS.muted, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: CHK_COLORS.muted, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>
               Recent Checks
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {history.map((h, i) => {
-                const b = badgeStyle(h.level);
+                const b = chkBadgeStyle(h.level);
                 return (
                   <button
                     key={i}
                     onClick={() => setFood(h.food)}
                     style={{
-                      background: COLORS.card,
+                      background: CHK_COLORS.card,
                       border: `1px solid ${b.color}55`,
                       borderRadius: 20,
                       padding: "6px 14px",
@@ -384,7 +385,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
         )}
 
         {/* Disclaimer */}
-        <p style={{ marginTop: 40, fontSize: 11, color: COLORS.muted, textAlign: "center", lineHeight: 1.6, fontFamily: "'DM Mono', monospace" }}>
+        <p style={{ marginTop: 40, fontSize: 11, color: CHK_COLORS.muted, textAlign: "center", lineHeight: 1.6, fontFamily: "'DM Mono', monospace" }}>
           For informational purposes only. Always consult your renal dietitian<br />before making dietary changes.
         </p>
       </div>
@@ -393,13 +394,12 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
 }
 
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 // FOOD TRACKER
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 
-const MODEL = "claude-sonnet-4-20250514";
 
-const C = {
+const TC = {
   bg: "#0e0e18",
   surface: "#14141f",
   card: "#1a1a2e",
@@ -414,7 +414,7 @@ const C = {
   white: "#f4f0ff",
 };
 
-const CUISINES = {
+const TRACKER_CUISINES = {
   "🇮🇳 Indian": ["Dal", "Idli", "Chapati", "Paneer", "Aloo Gobi", "Khichdi", "Poha", "Upma", "Sambar", "Raita"],
   "🇮🇹 Italian": ["Pasta Marinara", "Margherita Pizza", "Risotto", "Minestrone", "Bruschetta", "Caprese Salad", "Focaccia", "Gnocchi"],
   "🇲🇽 Mexican": ["Bean Tacos", "Guacamole", "Veggie Burrito", "Salsa", "Cheese Quesadilla", "Elote", "Refried Beans", "Tortilla Soup"],
@@ -422,49 +422,49 @@ const CUISINES = {
   "🌍 Other": ["Hummus", "Falafel", "Greek Salad", "Miso Soup", "Veggie Sushi", "Pad Thai (veg)", "Shakshuka", "Tabbouleh"],
 };
 
-const DAILY_LIMITS = { potassium: 2000, sodium: 1500, phosphorus: 800, protein: 50 };
+const TRACKER_DAILY_LIMITS = { potassium: 2000, sodium: 1500, phosphorus: 800, protein: 50 };
 
-function getRiskColor(risk) {
-  return risk === "high" ? C.danger : risk === "medium" ? C.warn : C.safe;
+function trkRiskColor(risk) {
+  return risk === "high" ? TC.danger : risk === "medium" ? TC.warn : TC.safe;
 }
 
-function MiniBar({ value, max, risk }) {
+function TrkMiniBar({ value, max, risk }) {
   const pct = Math.min((value / max) * 100, 100);
   return (
     <div style={{ background: "#1a1a30", borderRadius: 3, height: 4, width: "100%", overflow: "hidden" }}>
-      <div style={{ width: `${pct}%`, height: "100%", background: getRiskColor(risk), borderRadius: 3, transition: "width 0.6s ease" }} />
+      <div style={{ width: `${pct}%`, height: "100%", background: trkRiskColor(risk), borderRadius: 3, transition: "width 0.6s ease" }} />
     </div>
   );
 }
 
-function TotalBar({ label, current, max, unit }) {
+function TrkTotalBar({ label, current, max, unit }) {
   const pct = Math.min((current / max) * 100, 100);
   const over = current > max;
-  const color = over ? C.danger : pct > 75 ? C.warn : C.safe;
+  const color = over ? TC.danger : pct > 75 ? TC.warn : TC.safe;
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-        <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
+        <span style={{ fontSize: 12, color: TC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
         <span style={{ fontSize: 12, color, fontFamily: "monospace", fontWeight: 600 }}>
           {Math.round(current)}{unit} / {max}{unit} {over ? "⚠ OVER" : ""}
         </span>
       </div>
       <div style={{ background: "#1a1a30", borderRadius: 6, height: 8, overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 6, transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow: over ? `0 0 8px ${C.danger}88` : "none" }} />
+        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 6, transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow: over ? `0 0 8px ${TC.danger}88` : "none" }} />
       </div>
     </div>
   );
 }
 
-function LoadingPulse() {
+function TrkLoadingPulse() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 0" }}>
       <div style={{ display: "flex", gap: 4 }}>
         {[0,1,2].map(i => (
-          <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, animation: `pulse 1s ${i*0.15}s infinite ease-in-out` }} />
+          <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: TC.accent, animation: `pulse 1s ${i*0.15}s infinite ease-in-out` }} />
         ))}
       </div>
-      <span style={{ color: C.muted, fontSize: 12, fontFamily: "monospace" }}>Analyzing...</span>
+      <span style={{ color: TC.muted, fontSize: 12, fontFamily: "monospace" }}>Analyzing...</span>
       <style>{`@keyframes pulse { 0%,80%,100%{transform:scale(0.5);opacity:0.3} 40%{transform:scale(1);opacity:1} }`}</style>
     </div>
   );
@@ -513,7 +513,7 @@ Return ONLY valid JSON, no markdown:
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: MODEL,
+          model: API_MODEL,
           max_tokens: 600,
           messages: [{ role: "user", content: prompt }],
         }),
@@ -552,32 +552,32 @@ Return ONLY valid JSON, no markdown:
   const removeItem = (id) => setLog(l => l.filter(x => x.id !== id));
   const clearLog = () => setLog([]);
 
-  const safetyColor = (s) => s === "safe" ? C.safe : s === "caution" ? C.warn : C.danger;
+  const safetyColor = (s) => s === "safe" ? TC.safe : s === "caution" ? TC.warn : TC.danger;
   const safetyLabel = (s) => s === "safe" ? "✓ Safe" : s === "caution" ? "⚠ Caution" : "✗ Avoid";
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Sora', sans-serif", paddingBottom: 60 }}>
+    <div style={{ minHeight: "100vh", background: TC.bg, color: TC.text, fontFamily: "'Sora', sans-serif", paddingBottom: 60 }}>
       <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, #0e0e18 0%, #1a1030 100%)`, borderBottom: `1px solid ${C.border}`, padding: "28px 20px 20px", textAlign: "center" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#1a1a35", border: `1px solid ${C.border}`, borderRadius: 20, padding: "4px 14px", marginBottom: 14 }}>
-          <span style={{ fontSize: 10, color: C.accent, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase" }}>Daily Food Tracker · CKD Safe</span>
+      <div style={{ background: `linear-gradient(135deg, #0e0e18 0%, #1a1030 100%)`, borderBottom: `1px solid ${TC.border}`, padding: "28px 20px 20px", textAlign: "center" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#1a1a35", border: `1px solid ${TC.border}`, borderRadius: 20, padding: "4px 14px", marginBottom: 14 }}>
+          <span style={{ fontSize: 10, color: TC.accent, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase" }}>Daily Food Tracker · CKD Safe</span>
         </div>
-        <h1 style={{ margin: "0 0 6px", fontSize: "clamp(22px,5vw,36px)", fontWeight: 700, color: C.white, lineHeight: 1.2 }}>
-          Track Your <span style={{ color: C.accent }}>Kidney-Safe</span> Meals
+        <h1 style={{ margin: "0 0 6px", fontSize: "clamp(22px,5vw,36px)", fontWeight: 700, color: TC.white, lineHeight: 1.2 }}>
+          Track Your <span style={{ color: TC.accent }}>Kidney-Safe</span> Meals
         </h1>
-        <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>Global vegetarian foods · Potassium · Sodium · Phosphorus · Protein</p>
+        <p style={{ color: TC.muted, fontSize: 13, margin: 0 }}>Global vegetarian foods · Potassium · Sodium · Phosphorus · Protein</p>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", borderBottom: `1px solid ${C.border}`, background: C.surface }}>
+      <div style={{ display: "flex", borderBottom: `1px solid ${TC.border}`, background: TC.surface }}>
         {[["track", "➕ Add Food"], ["log", `📋 Today's Log (${log.length})`], ["totals", "📊 Daily Totals"]].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{
             flex: 1, padding: "14px 8px", border: "none", background: "transparent",
-            color: tab === key ? C.accent : C.muted, fontSize: 12, fontWeight: tab === key ? 700 : 400,
+            color: tab === key ? TC.accent : TC.muted, fontSize: 12, fontWeight: tab === key ? 700 : 400,
             fontFamily: "monospace", cursor: "pointer", letterSpacing: 0.5,
-            borderBottom: tab === key ? `2px solid ${C.accent}` : "2px solid transparent",
+            borderBottom: tab === key ? `2px solid ${TC.accent}` : "2px solid transparent",
             transition: "all 0.2s",
           }}>
             {label}
@@ -591,32 +591,32 @@ Return ONLY valid JSON, no markdown:
         {tab === "track" && (
           <div>
             {/* Manual entry */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 20 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>Manual Entry</div>
+            <div style={{ background: TC.card, border: `1px solid ${TC.border}`, borderRadius: 14, padding: 18, marginBottom: 20 }}>
+              <div style={{ fontSize: 11, color: TC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>Manual Entry</div>
               <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
                 <input value={food} onChange={e => setFood(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAdd()}
                   placeholder="Type any vegetarian food..."
-                  style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", color: C.white, fontSize: 14, outline: "none", fontFamily: "'Sora', sans-serif" }} />
+                  style={{ flex: 1, background: TC.surface, border: `1px solid ${TC.border}`, borderRadius: 8, padding: "10px 14px", color: TC.white, fontSize: 14, outline: "none", fontFamily: "'Sora', sans-serif" }} />
                 <input value={portion} onChange={e => setPortion(e.target.value)} placeholder="g"
-                  style={{ width: 64, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 10px", color: C.white, fontSize: 14, outline: "none", textAlign: "center", fontFamily: "monospace" }} />
+                  style={{ width: 64, background: TC.surface, border: `1px solid ${TC.border}`, borderRadius: 8, padding: "10px 10px", color: TC.white, fontSize: 14, outline: "none", textAlign: "center", fontFamily: "monospace" }} />
                 <button onClick={handleAdd} disabled={loading || !food.trim()}
-                  style={{ background: C.accent, color: "#1a0e00", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap" }}>
+                  style={{ background: TC.accent, color: "#1a0e00", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Sora', sans-serif", whiteSpace: "nowrap" }}>
                   + Add
                 </button>
               </div>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>Portion size in grams (default: 100g)</div>
-              {loading && <LoadingPulse />}
+              <div style={{ fontSize: 11, color: TC.muted, fontFamily: "monospace" }}>Portion size in grams (default: 100g)</div>
+              {loading && <TrkLoadingPulse />}
             </div>
 
             {/* Cuisine tabs */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Quick Pick by Cuisine</div>
+            <div style={{ background: TC.card, border: `1px solid ${TC.border}`, borderRadius: 14, padding: 18 }}>
+              <div style={{ fontSize: 11, color: TC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Quick Pick by Cuisine</div>
 
               {/* Cuisine selector */}
               <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 10, marginBottom: 14 }}>
-                {Object.keys(CUISINES).map(c => (
+                {Object.keys(TRACKER_CUISINES).map(c => (
                   <button key={c} onClick={() => setActiveCuisine(c)}
-                    style={{ background: activeCuisine === c ? C.accent : C.surface, color: activeCuisine === c ? "#1a0e00" : C.muted, border: `1px solid ${activeCuisine === c ? C.accent : C.border}`, borderRadius: 20, padding: "6px 14px", fontSize: 12, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "monospace", fontWeight: activeCuisine === c ? 700 : 400 }}>
+                    style={{ background: activeCuisine === c ? TC.accent : TC.surface, color: activeCuisine === c ? "#1a0e00" : TC.muted, border: `1px solid ${activeCuisine === c ? TC.accent : TC.border}`, borderRadius: 20, padding: "6px 14px", fontSize: 12, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "monospace", fontWeight: activeCuisine === c ? 700 : 400 }}>
                     {c}
                   </button>
                 ))}
@@ -624,11 +624,11 @@ Return ONLY valid JSON, no markdown:
 
               {/* Food grid */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
-                {CUISINES[activeCuisine].map(f => (
+                {TRACKER_CUISINES[activeCuisine].map(f => (
                   <button key={f} onClick={() => handleQuickPick(f)}
-                    style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", color: C.text, fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "'Sora', sans-serif", transition: "all 0.15s" }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.white; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.text; }}>
+                    style={{ background: TC.surface, border: `1px solid ${TC.border}`, borderRadius: 10, padding: "10px 14px", color: TC.text, fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "'Sora', sans-serif", transition: "all 0.15s" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = TC.accent; e.currentTarget.style.color = TC.white; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = TC.border; e.currentTarget.style.color = TC.text; }}>
                     {f}
                   </button>
                 ))}
@@ -641,7 +641,7 @@ Return ONLY valid JSON, no markdown:
         {tab === "log" && (
           <div>
             {log.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 20px", color: C.muted }}>
+              <div style={{ textAlign: "center", padding: "60px 20px", color: TC.muted }}>
                 <div style={{ fontSize: 40, marginBottom: 16 }}>🥗</div>
                 <div style={{ fontFamily: "monospace", fontSize: 14 }}>No foods logged yet.</div>
                 <div style={{ fontSize: 12, marginTop: 6 }}>Go to "Add Food" to get started.</div>
@@ -649,24 +649,24 @@ Return ONLY valid JSON, no markdown:
             ) : (
               <>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>{log.length} item{log.length !== 1 ? "s" : ""} logged today</span>
-                  <button onClick={clearLog} style={{ background: "transparent", border: `1px solid ${C.danger}55`, borderRadius: 8, padding: "4px 12px", color: C.danger, fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>Clear All</button>
+                  <span style={{ fontSize: 12, color: TC.muted, fontFamily: "monospace" }}>{log.length} item{log.length !== 1 ? "s" : ""} logged today</span>
+                  <button onClick={clearLog} style={{ background: "transparent", border: `1px solid ${TC.danger}55`, borderRadius: 8, padding: "4px 12px", color: TC.danger, fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>Clear All</button>
                 </div>
                 {log.map(item => {
                   const scale = item.portion / 100;
                   return (
-                    <div key={item.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 12, position: "relative", animation: "slideIn 0.3s ease" }}>
+                    <div key={item.id} style={{ background: TC.card, border: `1px solid ${TC.border}`, borderRadius: 14, padding: 16, marginBottom: 12, position: "relative", animation: "slideIn 0.3s ease" }}>
                       <style>{`@keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }`}</style>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: 15, color: C.white, marginBottom: 3 }}>{item.foodName}</div>
-                          <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>{item.portion}g portion</div>
+                          <div style={{ fontWeight: 600, fontSize: 15, color: TC.white, marginBottom: 3 }}>{item.foodName}</div>
+                          <div style={{ fontSize: 11, color: TC.muted, fontFamily: "monospace" }}>{item.portion}g portion</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <span style={{ fontSize: 11, color: safetyColor(item.safetyLevel), fontFamily: "monospace", background: `${safetyColor(item.safetyLevel)}22`, padding: "3px 8px", borderRadius: 10 }}>
                             {safetyLabel(item.safetyLevel)}
                           </span>
-                          <button onClick={() => removeItem(item.id)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 16, lineHeight: 1, padding: 2 }}>×</button>
+                          <button onClick={() => removeItem(item.id)} style={{ background: "transparent", border: "none", color: TC.muted, cursor: "pointer", fontSize: 16, lineHeight: 1, padding: 2 }}>×</button>
                         </div>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
@@ -678,15 +678,15 @@ Return ONLY valid JSON, no markdown:
                         ].map(({ label, val, unit, risk, max }) => (
                           <div key={label}>
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                              <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{label}</span>
-                              <span style={{ fontSize: 10, color: getRiskColor(risk), fontFamily: "monospace" }}>{Math.round(val)}{unit}</span>
+                              <span style={{ fontSize: 10, color: TC.muted, fontFamily: "monospace" }}>{label}</span>
+                              <span style={{ fontSize: 10, color: trkRiskColor(risk), fontFamily: "monospace" }}>{Math.round(val)}{unit}</span>
                             </div>
-                            <MiniBar value={val} max={max} risk={risk} />
+                            <TrkMiniBar value={val} max={max} risk={risk} />
                           </div>
                         ))}
                       </div>
                       {item.tip && (
-                        <div style={{ marginTop: 12, fontSize: 11, color: C.accent, fontFamily: "monospace", background: "#1e1800", borderRadius: 8, padding: "8px 10px" }}>
+                        <div style={{ marginTop: 12, fontSize: 11, color: TC.accent, fontFamily: "monospace", background: "#1e1800", borderRadius: 8, padding: "8px 10px" }}>
                           💡 {item.tip}
                         </div>
                       )}
@@ -701,38 +701,38 @@ Return ONLY valid JSON, no markdown:
         {/* TOTALS TAB */}
         {tab === "totals" && (
           <div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20, marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 18 }}>Daily Totals vs CKD Limits</div>
-              <TotalBar label="Potassium" current={totals.potassium} max={DAILY_LIMITS.potassium} unit="mg" />
-              <TotalBar label="Sodium" current={totals.sodium} max={DAILY_LIMITS.sodium} unit="mg" />
-              <TotalBar label="Phosphorus" current={totals.phosphorus} max={DAILY_LIMITS.phosphorus} unit="mg" />
-              <TotalBar label="Protein" current={totals.protein} max={DAILY_LIMITS.protein} unit="g" />
+            <div style={{ background: TC.card, border: `1px solid ${TC.border}`, borderRadius: 14, padding: 20, marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: TC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 18 }}>Daily Totals vs CKD Limits</div>
+              <TrkTotalBar label="Potassium" current={totals.potassium} max={TRACKER_DAILY_LIMITS.potassium} unit="mg" />
+              <TrkTotalBar label="Sodium" current={totals.sodium} max={TRACKER_DAILY_LIMITS.sodium} unit="mg" />
+              <TrkTotalBar label="Phosphorus" current={totals.phosphorus} max={TRACKER_DAILY_LIMITS.phosphorus} unit="mg" />
+              <TrkTotalBar label="Protein" current={totals.protein} max={TRACKER_DAILY_LIMITS.protein} unit="g" />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10, marginBottom: 16 }}>
               {[
-                { label: "Potassium", val: totals.potassium, limit: DAILY_LIMITS.potassium, unit: "mg" },
-                { label: "Sodium", val: totals.sodium, limit: DAILY_LIMITS.sodium, unit: "mg" },
-                { label: "Phosphorus", val: totals.phosphorus, limit: DAILY_LIMITS.phosphorus, unit: "mg" },
-                { label: "Protein", val: totals.protein, limit: DAILY_LIMITS.protein, unit: "g" },
+                { label: "Potassium", val: totals.potassium, limit: TRACKER_DAILY_LIMITS.potassium, unit: "mg" },
+                { label: "Sodium", val: totals.sodium, limit: TRACKER_DAILY_LIMITS.sodium, unit: "mg" },
+                { label: "Phosphorus", val: totals.phosphorus, limit: TRACKER_DAILY_LIMITS.phosphorus, unit: "mg" },
+                { label: "Protein", val: totals.protein, limit: TRACKER_DAILY_LIMITS.protein, unit: "g" },
               ].map(({ label, val, limit, unit }) => {
                 const pct = Math.round((val / limit) * 100);
-                const color = pct > 100 ? C.danger : pct > 75 ? C.warn : C.safe;
+                const color = pct > 100 ? TC.danger : pct > 75 ? TC.warn : TC.safe;
                 return (
-                  <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, textAlign: "center" }}>
+                  <div key={label} style={{ background: TC.card, border: `1px solid ${TC.border}`, borderRadius: 12, padding: 16, textAlign: "center" }}>
                     <div style={{ fontSize: 28, fontWeight: 700, color, fontFamily: "monospace" }}>{pct}%</div>
-                    <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{Math.round(val)}/{limit}{unit}</div>
+                    <div style={{ fontSize: 11, color: TC.muted, fontFamily: "monospace", marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontSize: 10, color: TC.muted, fontFamily: "monospace" }}>{Math.round(val)}/{limit}{unit}</div>
                   </div>
                 );
               })}
             </div>
 
-            <div style={{ background: "#1a1500", border: `1px solid ${C.accentDim}`, borderRadius: 12, padding: 16, fontSize: 12, color: C.muted, fontFamily: "monospace", lineHeight: 1.7 }}>
-              <div style={{ color: C.accent, marginBottom: 6, fontWeight: 700 }}>📋 CKD Daily Limits Used</div>
+            <div style={{ background: "#1a1500", border: `1px solid ${TC.accentDim}`, borderRadius: 12, padding: 16, fontSize: 12, color: TC.muted, fontFamily: "monospace", lineHeight: 1.7 }}>
+              <div style={{ color: TC.accent, marginBottom: 6, fontWeight: 700 }}>📋 CKD Daily Limits Used</div>
               Potassium: 2,000mg · Sodium: 1,500mg<br />
               Phosphorus: 800mg · Protein: 50g<br />
-              <span style={{ fontSize: 10, color: C.muted, marginTop: 6, display: "block" }}>Limits vary by CKD stage — consult your renal dietitian.</span>
+              <span style={{ fontSize: 10, color: TC.muted, marginTop: 6, display: "block" }}>Limits vary by CKD stage — consult your renal dietitian.</span>
             </div>
           </div>
         )}
@@ -741,19 +741,19 @@ Return ONLY valid JSON, no markdown:
       {/* Portion modal */}
       {showPortionModal && (
         <div style={{ position: "fixed", inset: 0, background: "#000000bb", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 20 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 24, width: "100%", maxWidth: 320 }}>
-            <div style={{ fontWeight: 600, color: C.white, fontSize: 16, marginBottom: 6 }}>{pendingFood}</div>
-            <div style={{ fontSize: 12, color: C.muted, fontFamily: "monospace", marginBottom: 18 }}>How much are you eating?</div>
+          <div style={{ background: TC.card, border: `1px solid ${TC.border}`, borderRadius: 16, padding: 24, width: "100%", maxWidth: 320 }}>
+            <div style={{ fontWeight: 600, color: TC.white, fontSize: 16, marginBottom: 6 }}>{pendingFood}</div>
+            <div style={{ fontSize: 12, color: TC.muted, fontFamily: "monospace", marginBottom: 18 }}>How much are you eating?</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 16 }}>
               {[50, 100, 150, 200, 250, 300].map(g => (
                 <button key={g} onClick={() => confirmQuickPick(g)}
-                  style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 8px", color: C.text, fontSize: 14, cursor: "pointer", fontFamily: "monospace", fontWeight: 600 }}>
+                  style={{ background: TC.surface, border: `1px solid ${TC.border}`, borderRadius: 10, padding: "12px 8px", color: TC.text, fontSize: 14, cursor: "pointer", fontFamily: "monospace", fontWeight: 600 }}>
                   {g}g
                 </button>
               ))}
             </div>
             <button onClick={() => setShowPortionModal(false)}
-              style={{ width: "100%", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px", color: C.muted, fontSize: 13, cursor: "pointer", fontFamily: "monospace" }}>
+              style={{ width: "100%", background: "transparent", border: `1px solid ${TC.border}`, borderRadius: 10, padding: "10px", color: TC.muted, fontSize: 13, cursor: "pointer", fontFamily: "monospace" }}>
               Cancel
             </button>
           </div>
@@ -764,13 +764,12 @@ Return ONLY valid JSON, no markdown:
 }
 
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 // RECIPE CONVERTER
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 
-const MODEL = "claude-sonnet-4-20250514";
 
-const C = {
+const CC = {
   bg: "#0f0c1a",
   surface: "#16122a",
   card: "#1e1835",
@@ -785,7 +784,7 @@ const C = {
   white: "#f8f4ff",
 };
 
-const SAMPLE_RECIPES = [
+const CONV_SAMPLE_RECIPES = [
   { label: "🥔 Aloo Gobi", value: "Aloo Gobi" },
   { label: "🍅 Dal Makhani", value: "Dal Makhani" },
   { label: "🧆 Rajma", value: "Rajma (Kidney Bean Curry)" },
@@ -794,46 +793,46 @@ const SAMPLE_RECIPES = [
   { label: "🍜 Pasta Primavera", value: "Pasta Primavera with tomato sauce and spinach" },
 ];
 
-function RiskPill({ risk }) {
-  const map = { high: { color: C.danger, label: "High Risk", bg: "#2d1010" }, medium: { color: C.warn, label: "Med Risk", bg: "#2d2010" }, low: { color: C.safe, label: "Low Risk", bg: "#0d2d1a" } };
+function ConvRiskPill({ risk }) {
+  const map = { high: { color: CC.danger, label: "High Risk", bg: "#2d1010" }, medium: { color: CC.warn, label: "Med Risk", bg: "#2d2010" }, low: { color: CC.safe, label: "Low Risk", bg: "#0d2d1a" } };
   const s = map[risk] || map.low;
   return <span style={{ fontSize: 10, color: s.color, background: s.bg, border: `1px solid ${s.color}44`, borderRadius: 10, padding: "2px 8px", fontFamily: "monospace", whiteSpace: "nowrap" }}>{s.label}</span>;
 }
 
-function NutrientCompare({ label, before, after, unit, limit }) {
+function ConvNutrientCompare({ label, before, after, unit, limit }) {
   const pctB = Math.min((before / limit) * 100, 100);
   const pctA = Math.min((after / limit) * 100, 100);
   const improved = after < before;
-  const colorA = after > limit ? C.danger : pctA > 75 ? C.warn : C.safe;
+  const colorA = after > limit ? CC.danger : pctA > 75 ? CC.warn : CC.safe;
   return (
     <div style={{ marginBottom: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
+        <span style={{ fontSize: 12, color: CC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textDecoration: "line-through" }}>{Math.round(before)}{unit}</span>
-          <span style={{ fontSize: 11, color: improved ? C.safe : C.danger, fontFamily: "monospace" }}>→</span>
+          <span style={{ fontSize: 11, color: CC.muted, fontFamily: "monospace", textDecoration: "line-through" }}>{Math.round(before)}{unit}</span>
+          <span style={{ fontSize: 11, color: improved ? CC.safe : CC.danger, fontFamily: "monospace" }}>→</span>
           <span style={{ fontSize: 12, color: colorA, fontFamily: "monospace", fontWeight: 700 }}>{Math.round(after)}{unit}</span>
-          {improved && <span style={{ fontSize: 10, color: C.safe, fontFamily: "monospace" }}>↓{Math.round(((before - after) / before) * 100)}%</span>}
+          {improved && <span style={{ fontSize: 10, color: CC.safe, fontFamily: "monospace" }}>↓{Math.round(((before - after) / before) * 100)}%</span>}
         </div>
       </div>
       <div style={{ position: "relative", height: 8, background: "#1a1530", borderRadius: 6, overflow: "hidden" }}>
-        <div style={{ position: "absolute", width: `${pctB}%`, height: "100%", background: `${C.danger}44`, borderRadius: 6 }} />
+        <div style={{ position: "absolute", width: `${pctB}%`, height: "100%", background: `${CC.danger}44`, borderRadius: 6 }} />
         <div style={{ position: "absolute", width: `${pctA}%`, height: "100%", background: colorA, borderRadius: 6, transition: "width 0.8s ease" }} />
       </div>
-      <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 3, textAlign: "right" }}>Limit: {limit}{unit}</div>
+      <div style={{ fontSize: 10, color: CC.muted, fontFamily: "monospace", marginTop: 3, textAlign: "right" }}>Limit: {limit}{unit}</div>
     </div>
   );
 }
 
-function LoadingDots() {
+function ConvLoadingDots() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "40px 0" }}>
       <div style={{ display: "flex", gap: 8 }}>
         {[0, 1, 2, 3].map(i => (
-          <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: C.accent, animation: `blink 1.2s ${i * 0.15}s infinite ease-in-out` }} />
+          <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: CC.accent, animation: `blink 1.2s ${i * 0.15}s infinite ease-in-out` }} />
         ))}
       </div>
-      <span style={{ color: C.muted, fontSize: 13, fontFamily: "monospace" }}>Analyzing ingredients & finding safe swaps...</span>
+      <span style={{ color: CC.muted, fontSize: 13, fontFamily: "monospace" }}>Analyzing ingredients & finding safe swaps...</span>
       <style>{`@keyframes blink{0%,80%,100%{transform:scale(0.5);opacity:0.3}40%{transform:scale(1);opacity:1}}`}</style>
     </div>
   );
@@ -912,7 +911,7 @@ Return ONLY valid JSON (no markdown, no explanation):
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: MODEL, max_tokens: 1500, messages: [{ role: "user", content: prompt }] }),
+        body: JSON.stringify({ model: API_MODEL, max_tokens: 1500, messages: [{ role: "user", content: prompt }] }),
       });
       const data = await res.json();
       const text = data.content?.map(b => b.text || "").join("") || "";
@@ -929,7 +928,7 @@ Return ONLY valid JSON (no markdown, no explanation):
     }
   };
 
-  const safetyColor = s => s === "safe" ? C.safe : s === "caution" ? C.warn : C.danger;
+  const safetyColor = s => s === "safe" ? CC.safe : s === "caution" ? CC.warn : CC.danger;
   const safetyLabel = s => s === "safe" ? "✓ CKD Safe" : s === "caution" ? "⚠ Use Caution" : "✗ Avoid";
 
   // Compute adjusted nutrition based on accepted subs
@@ -943,18 +942,18 @@ Return ONLY valid JSON (no markdown, no explanation):
   } : null;
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 60 }}>
+    <div style={{ minHeight: "100vh", background: CC.bg, color: CC.text, fontFamily: "'Plus Jakarta Sans', sans-serif", paddingBottom: 60 }}>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
 
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, #0f0c1a 0%, #1a1030 50%, #0f0c1a 100%)`, borderBottom: `1px solid ${C.border}`, padding: "32px 20px 24px", textAlign: "center" }}>
-        <div style={{ display: "inline-block", background: "#2d1a4a", border: `1px solid ${C.accentDim}`, borderRadius: 20, padding: "4px 16px", marginBottom: 14, fontSize: 10, color: C.accent, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase" }}>
+      <div style={{ background: `linear-gradient(135deg, #0f0c1a 0%, #1a1030 50%, #0f0c1a 100%)`, borderBottom: `1px solid ${CC.border}`, padding: "32px 20px 24px", textAlign: "center" }}>
+        <div style={{ display: "inline-block", background: "#2d1a4a", border: `1px solid ${CC.accentDim}`, borderRadius: 20, padding: "4px 16px", marginBottom: 14, fontSize: 10, color: CC.accent, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase" }}>
           CKD Recipe Converter
         </div>
-        <h1 style={{ margin: "0 0 8px", fontSize: "clamp(24px,5vw,40px)", fontWeight: 700, color: C.white, lineHeight: 1.2 }}>
-          Make Any Recipe<br /><span style={{ color: C.accent }}>Kidney-Safe</span>
+        <h1 style={{ margin: "0 0 8px", fontSize: "clamp(24px,5vw,40px)", fontWeight: 700, color: CC.white, lineHeight: 1.2 }}>
+          Make Any Recipe<br /><span style={{ color: CC.accent }}>Kidney-Safe</span>
         </h1>
-        <p style={{ color: C.muted, fontSize: 14, margin: 0, maxWidth: 420, marginInline: "auto" }}>
+        <p style={{ color: CC.muted, fontSize: 14, margin: 0, maxWidth: 420, marginInline: "auto" }}>
           Get smart ingredient swaps to cut potassium, sodium & phosphorus — without sacrificing flavor
         </p>
       </div>
@@ -962,12 +961,12 @@ Return ONLY valid JSON (no markdown, no explanation):
       <div style={{ maxWidth: 620, margin: "0 auto", padding: "24px 16px" }}>
 
         {/* Input card */}
-        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, marginBottom: 20 }}>
+        <div style={{ background: CC.card, border: `1px solid ${CC.border}`, borderRadius: 16, padding: 20, marginBottom: 20 }}>
 
           {/* Mode toggle */}
-          <div style={{ display: "flex", background: C.surface, borderRadius: 10, padding: 4, marginBottom: 18, gap: 4 }}>
+          <div style={{ display: "flex", background: CC.surface, borderRadius: 10, padding: 4, marginBottom: 18, gap: 4 }}>
             {[["name", "🍽 Dish Name"], ["paste", "📋 Paste Recipe"]].map(([key, label]) => (
-              <button key={key} onClick={() => setMode(key)} style={{ flex: 1, padding: "9px 12px", border: "none", borderRadius: 8, background: mode === key ? C.accent : "transparent", color: mode === key ? "#0f0c1a" : C.muted, fontSize: 13, fontWeight: mode === key ? 700 : 400, cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", transition: "all 0.2s" }}>
+              <button key={key} onClick={() => setMode(key)} style={{ flex: 1, padding: "9px 12px", border: "none", borderRadius: 8, background: mode === key ? CC.accent : "transparent", color: mode === key ? "#0f0c1a" : CC.muted, fontSize: 13, fontWeight: mode === key ? 700 : 400, cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", transition: "all 0.2s" }}>
                 {label}
               </button>
             ))}
@@ -975,16 +974,16 @@ Return ONLY valid JSON (no markdown, no explanation):
 
           {mode === "name" ? (
             <>
-              <label style={{ display: "block", fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Dish Name</label>
+              <label style={{ display: "block", fontSize: 11, color: CC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Dish Name</label>
               <input value={dishName} onChange={e => setDishName(e.target.value)} onKeyDown={e => e.key === "Enter" && analyzeRecipe()}
                 placeholder="e.g. Aloo Gobi, Pasta Arrabiata, Dal Tadka..."
-                style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", color: C.white, fontSize: 15, outline: "none", fontFamily: "'Plus Jakarta Sans', sans-serif", boxSizing: "border-box", marginBottom: 12 }} />
+                style={{ width: "100%", background: CC.surface, border: `1px solid ${CC.border}`, borderRadius: 10, padding: "12px 16px", color: CC.white, fontSize: 15, outline: "none", fontFamily: "'Plus Jakarta Sans', sans-serif", boxSizing: "border-box", marginBottom: 12 }} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 4 }}>
-                {SAMPLE_RECIPES.map(r => (
+                {CONV_SAMPLE_RECIPES.map(r => (
                   <button key={r.value} onClick={() => setDishName(r.value)}
-                    style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 20, padding: "5px 12px", color: C.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace" }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted; }}>
+                    style={{ background: "transparent", border: `1px solid ${CC.border}`, borderRadius: 20, padding: "5px 12px", color: CC.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace" }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = CC.accent; e.currentTarget.style.color = CC.accent; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = CC.border; e.currentTarget.style.color = CC.muted; }}>
                     {r.label}
                   </button>
                 ))}
@@ -992,29 +991,29 @@ Return ONLY valid JSON (no markdown, no explanation):
             </>
           ) : (
             <>
-              <label style={{ display: "block", fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Paste Your Recipe</label>
+              <label style={{ display: "block", fontSize: 11, color: CC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Paste Your Recipe</label>
               <textarea value={pastedRecipe} onChange={e => setPastedRecipe(e.target.value)}
                 placeholder={"e.g.\n2 large potatoes\n1 cup tomatoes\n1 tsp salt\n2 cups spinach\n..."}
                 rows={6}
-                style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", color: C.white, fontSize: 14, outline: "none", fontFamily: "monospace", resize: "vertical", boxSizing: "border-box", marginBottom: 12 }} />
+                style={{ width: "100%", background: CC.surface, border: `1px solid ${CC.border}`, borderRadius: 10, padding: "12px 16px", color: CC.white, fontSize: 14, outline: "none", fontFamily: "monospace", resize: "vertical", boxSizing: "border-box", marginBottom: 12 }} />
             </>
           )}
 
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Serves</label>
+              <label style={{ display: "block", fontSize: 11, color: CC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Serves</label>
               <input value={servings} onChange={e => setServings(e.target.value)} type="number" min="1" max="20"
-                style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", color: C.white, fontSize: 14, outline: "none", fontFamily: "monospace" }} />
+                style={{ width: "100%", background: CC.surface, border: `1px solid ${CC.border}`, borderRadius: 10, padding: "10px 14px", color: CC.white, fontSize: 14, outline: "none", fontFamily: "monospace" }} />
             </div>
             <button onClick={analyzeRecipe} disabled={loading || !(mode === "name" ? dishName : pastedRecipe).trim()}
-              style={{ flex: 3, marginTop: 22, background: loading ? C.accentDim : C.accent, color: "#0f0c1a", border: "none", borderRadius: 10, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              style={{ flex: 3, marginTop: 22, background: loading ? CC.accentDim : CC.accent, color: "#0f0c1a", border: "none", borderRadius: 10, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {loading ? "Analyzing..." : "🔄 Convert Recipe →"}
             </button>
           </div>
         </div>
 
-        {loading && <LoadingDots />}
-        {error && <div style={{ background: "#2d1010", border: `1px solid ${C.danger}55`, borderRadius: 12, padding: 16, color: C.danger, fontSize: 14, marginBottom: 16 }}>{error}</div>}
+        {loading && <ConvLoadingDots />}
+        {error && <div style={{ background: "#2d1010", border: `1px solid ${CC.danger}55`, borderRadius: 12, padding: 16, color: CC.danger, fontSize: 14, marginBottom: 16 }}>{error}</div>}
 
         {result && !loading && (
           <div style={{ animation: "fadeUp 0.4s ease" }}>
@@ -1022,54 +1021,54 @@ Return ONLY valid JSON (no markdown, no explanation):
 
             {/* Before/After safety */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, marginBottom: 16, alignItems: "center" }}>
-              <div style={{ background: C.card, border: `1px solid ${safetyColor(result.overallSafetyBefore)}44`, borderRadius: 12, padding: 14, textAlign: "center" }}>
-                <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Original</div>
+              <div style={{ background: CC.card, border: `1px solid ${safetyColor(result.overallSafetyBefore)}44`, borderRadius: 12, padding: 14, textAlign: "center" }}>
+                <div style={{ fontSize: 10, color: CC.muted, fontFamily: "monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Original</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: safetyColor(result.overallSafetyBefore) }}>{safetyLabel(result.overallSafetyBefore)}</div>
               </div>
               <div style={{ fontSize: 20, textAlign: "center" }}>→</div>
-              <div style={{ background: C.card, border: `1px solid ${safetyColor(result.overallSafetyAfter)}44`, borderRadius: 12, padding: 14, textAlign: "center" }}>
-                <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Modified</div>
+              <div style={{ background: CC.card, border: `1px solid ${safetyColor(result.overallSafetyAfter)}44`, borderRadius: 12, padding: 14, textAlign: "center" }}>
+                <div style={{ fontSize: 10, color: CC.muted, fontFamily: "monospace", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Modified</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: safetyColor(result.overallSafetyAfter) }}>{safetyLabel(result.overallSafetyAfter)}</div>
               </div>
             </div>
 
             {/* Ingredients */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Original Ingredients — Risk Analysis</div>
+            <div style={{ background: CC.card, border: `1px solid ${CC.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, color: CC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Original Ingredients — Risk Analysis</div>
               {result.originalIngredients.map((ing, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 0", borderBottom: i < result.originalIngredients.length - 1 ? `1px solid ${C.border}` : "none", gap: 10 }}>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 0", borderBottom: i < result.originalIngredients.length - 1 ? `1px solid ${CC.border}` : "none", gap: 10 }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, color: C.white, fontWeight: 500, marginBottom: 2 }}>{ing.amount} {ing.name}</div>
-                    <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>{ing.riskReason}</div>
+                    <div style={{ fontSize: 14, color: CC.white, fontWeight: 500, marginBottom: 2 }}>{ing.amount} {ing.name}</div>
+                    <div style={{ fontSize: 11, color: CC.muted, fontFamily: "monospace" }}>{ing.riskReason}</div>
                   </div>
-                  <RiskPill risk={ing.ckdRisk} />
+                  <ConvRiskPill risk={ing.ckdRisk} />
                 </div>
               ))}
             </div>
 
             {/* Substitutions */}
             {result.substitutions.length > 0 && (
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
+              <div style={{ background: CC.card, border: `1px solid ${CC.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                  <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase" }}>Smart Substitutions</div>
-                  <div style={{ fontSize: 11, color: C.accent, fontFamily: "monospace" }}>{acceptedCount}/{totalSubs} accepted</div>
+                  <div style={{ fontSize: 11, color: CC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase" }}>Smart Substitutions</div>
+                  <div style={{ fontSize: 11, color: CC.accent, fontFamily: "monospace" }}>{acceptedCount}/{totalSubs} accepted</div>
                 </div>
                 {result.substitutions.map((sub, i) => (
-                  <div key={i} style={{ background: accepted[i] ? "#1a0f2e" : C.surface, border: `1px solid ${accepted[i] ? C.accentDim : C.border}`, borderRadius: 12, padding: 14, marginBottom: 10, transition: "all 0.2s" }}>
+                  <div key={i} style={{ background: accepted[i] ? "#1a0f2e" : CC.surface, border: `1px solid ${accepted[i] ? CC.accentDim : CC.border}`, borderRadius: 12, padding: 14, marginBottom: 10, transition: "all 0.2s" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                          <span style={{ fontSize: 13, color: C.danger, fontFamily: "monospace", textDecoration: accepted[i] ? "line-through" : "none" }}>{sub.original}</span>
-                          <span style={{ color: C.muted }}>→</span>
-                          <span style={{ fontSize: 13, color: C.safe, fontFamily: "monospace", fontWeight: 600 }}>{sub.amount} {sub.substitute}</span>
+                          <span style={{ fontSize: 13, color: CC.danger, fontFamily: "monospace", textDecoration: accepted[i] ? "line-through" : "none" }}>{sub.original}</span>
+                          <span style={{ color: CC.muted }}>→</span>
+                          <span style={{ fontSize: 13, color: CC.safe, fontFamily: "monospace", fontWeight: 600 }}>{sub.amount} {sub.substitute}</span>
                         </div>
-                        <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>{sub.reason}</div>
-                        <div style={{ fontSize: 11, color: C.accent, fontFamily: "monospace", background: "#1e1040", borderRadius: 6, padding: "3px 8px", display: "inline-block" }}>
+                        <div style={{ fontSize: 12, color: CC.muted, marginBottom: 4 }}>{sub.reason}</div>
+                        <div style={{ fontSize: 11, color: CC.accent, fontFamily: "monospace", background: "#1e1040", borderRadius: 6, padding: "3px 8px", display: "inline-block" }}>
                           💜 {sub.reduction}
                         </div>
                       </div>
                       <button onClick={() => toggleSub(i)}
-                        style={{ background: accepted[i] ? C.accent : "transparent", border: `1px solid ${accepted[i] ? C.accent : C.border}`, borderRadius: 8, padding: "6px 12px", color: accepted[i] ? "#0f0c1a" : C.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
+                        style={{ background: accepted[i] ? CC.accent : "transparent", border: `1px solid ${accepted[i] ? CC.accent : CC.border}`, borderRadius: 8, padding: "6px 12px", color: accepted[i] ? "#0f0c1a" : CC.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
                         {accepted[i] ? "✓ On" : "Off"}
                       </button>
                     </div>
@@ -1079,24 +1078,24 @@ Return ONLY valid JSON (no markdown, no explanation):
             )}
 
             {/* Nutrition comparison */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 16 }}>
+            <div style={{ background: CC.card, border: `1px solid ${CC.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, color: CC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 16 }}>
                 Nutrition Per Serving — Before vs After ({acceptedCount} swaps active)
               </div>
-              <NutrientCompare label="Potassium" before={result.nutritionBefore.potassium} after={adjustedNutrition.potassium} unit="mg" limit={667} />
-              <NutrientCompare label="Sodium" before={result.nutritionBefore.sodium} after={adjustedNutrition.sodium} unit="mg" limit={500} />
-              <NutrientCompare label="Phosphorus" before={result.nutritionBefore.phosphorus} after={adjustedNutrition.phosphorus} unit="mg" limit={267} />
-              <NutrientCompare label="Protein" before={result.nutritionBefore.protein} after={adjustedNutrition.protein} unit="g" limit={17} />
+              <ConvNutrientCompare label="Potassium" before={result.nutritionBefore.potassium} after={adjustedNutrition.potassium} unit="mg" limit={667} />
+              <ConvNutrientCompare label="Sodium" before={result.nutritionBefore.sodium} after={adjustedNutrition.sodium} unit="mg" limit={500} />
+              <ConvNutrientCompare label="Phosphorus" before={result.nutritionBefore.phosphorus} after={adjustedNutrition.phosphorus} unit="mg" limit={267} />
+              <ConvNutrientCompare label="Protein" before={result.nutritionBefore.protein} after={adjustedNutrition.protein} unit="g" limit={17} />
             </div>
 
             {/* Cooking tips */}
             {result.cookingTips?.length > 0 && (
-              <div style={{ background: "#140e28", border: `1px solid ${C.accentDim}`, borderRadius: 12, padding: 16, marginBottom: 14 }}>
-                <div style={{ fontSize: 11, color: C.accent, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>👩‍⚕️ Dietitian Cooking Tips</div>
+              <div style={{ background: "#140e28", border: `1px solid ${CC.accentDim}`, borderRadius: 12, padding: 16, marginBottom: 14 }}>
+                <div style={{ fontSize: 11, color: CC.accent, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>👩‍⚕️ Dietitian Cooking Tips</div>
                 {result.cookingTips.map((tip, i) => (
                   <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < result.cookingTips.length - 1 ? 10 : 0 }}>
-                    <span style={{ color: C.accent, fontWeight: 700, flexShrink: 0 }}>→</span>
-                    <span style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>{tip}</span>
+                    <span style={{ color: CC.accent, fontWeight: 700, flexShrink: 0 }}>→</span>
+                    <span style={{ fontSize: 13, color: CC.text, lineHeight: 1.6 }}>{tip}</span>
                   </div>
                 ))}
               </div>
@@ -1104,11 +1103,11 @@ Return ONLY valid JSON (no markdown, no explanation):
 
             {/* Modified recipe summary */}
             <div style={{ background: "#0d1a12", border: `1px solid #2a4a30`, borderRadius: 12, padding: 16 }}>
-              <div style={{ fontSize: 11, color: C.safe, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>✓ Your CKD-Safe Version</div>
-              <p style={{ margin: 0, fontSize: 14, color: C.text, lineHeight: 1.7 }}>{result.modifiedRecipeSummary}</p>
+              <div style={{ fontSize: 11, color: CC.safe, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>✓ Your CKD-Safe Version</div>
+              <p style={{ margin: 0, fontSize: 14, color: CC.text, lineHeight: 1.7 }}>{result.modifiedRecipeSummary}</p>
             </div>
 
-            <p style={{ marginTop: 24, fontSize: 11, color: C.muted, textAlign: "center", fontFamily: "monospace", lineHeight: 1.6 }}>
+            <p style={{ marginTop: 24, fontSize: 11, color: CC.muted, textAlign: "center", fontFamily: "monospace", lineHeight: 1.6 }}>
               Nutritional values are estimates. Always consult your renal dietitian.
             </p>
           </div>
@@ -1119,13 +1118,12 @@ Return ONLY valid JSON (no markdown, no explanation):
 }
 
 
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 // RECIPE LIBRARY
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
 
-const MODEL = "claude-sonnet-4-20250514";
 
-const C = {
+const LC = {
   bg: "#0a0f0d",
   surface: "#111a15",
   card: "#162019",
@@ -1141,9 +1139,9 @@ const C = {
   tag: "#1a3d24",
 };
 
-const CUISINES = ["All", "🇮🇳 Indian", "🇮🇹 Italian", "🇲🇽 Mexican", "🇨🇳 Chinese", "🌍 Other"];
+const LIB_CUISINES = ["All", "🇮🇳 Indian", "🇮🇹 Italian", "🇲🇽 Mexican", "🇨🇳 Chinese", "🌍 Other"];
 
-const DEFAULT_RECIPES = [
+const LIB_DEFAULT_RECIPES = [
   { id:1, savedAt:"Default", cuisine:"🇮🇳 Indian", dishName:"Khichdi", servings:4, safetyLevel:"safe", photo:null,
     dietitianNote:"Khichdi is one of the best CKD-friendly Indian meals — easy on the kidneys with low potassium and moderate protein. Use less dal and more rice to further reduce protein if needed.",
     topTip:"Use a 3:1 rice-to-dal ratio and rinse both thoroughly to reduce phosphorus. Avoid adding too much salt.",
@@ -1286,14 +1284,14 @@ const DEFAULT_RECIPES = [
     nutritionAfterSwaps:{potassium:180,sodium:120,phosphorus:80,protein:4}},
 ];
 
-const SAFETY_MAP = {
-  safe: { color: C.accent, bg: "#0d2d1a", label: "✓ Safe" },
-  caution: { color: C.warn, bg: "#2d2010", label: "⚠ Caution" },
-  avoid: { color: C.danger, bg: "#2d1010", label: "✗ Avoid" },
+const LIB_SAFETY_MAP = {
+  safe: { color: LC.accent, bg: "#0d2d1a", label: "✓ Safe" },
+  caution: { color: LC.warn, bg: "#2d2010", label: "⚠ Caution" },
+  avoid: { color: LC.danger, bg: "#2d1010", label: "✗ Avoid" },
 };
 
-function SafetyBadge({ level }) {
-  const s = SAFETY_MAP[level] || SAFETY_MAP.caution;
+function LibSafetyBadge({ level }) {
+  const s = LIB_SAFETY_MAP[level] || LIB_SAFETY_MAP.caution;
   return (
     <span style={{ fontSize: 11, color: s.color, background: s.bg, border: `1px solid ${s.color}44`, borderRadius: 10, padding: "3px 10px", fontFamily: "monospace", whiteSpace: "nowrap" }}>
       {s.label}
@@ -1301,7 +1299,7 @@ function SafetyBadge({ level }) {
   );
 }
 
-function NutrientDots({ potassium, sodium, phosphorus, protein }) {
+function LibNutrientDots({ potassium, sodium, phosphorus, protein }) {
   const nutrients = [
     { label: "K", val: potassium, max: 667 },
     { label: "Na", val: sodium, max: 500 },
@@ -1312,13 +1310,13 @@ function NutrientDots({ potassium, sodium, phosphorus, protein }) {
     <div style={{ display: "flex", gap: 6 }}>
       {nutrients.map(({ label, val, max }) => {
         const pct = val / max;
-        const color = pct > 1 ? C.danger : pct > 0.75 ? C.warn : C.accent;
+        const color = pct > 1 ? LC.danger : pct > 0.75 ? LC.warn : LC.accent;
         return (
           <div key={label} title={`${label}: ${Math.round(val)}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
             <div style={{ width: 28, height: 4, background: "#1a2d20", borderRadius: 3, overflow: "hidden" }}>
               <div style={{ width: `${Math.min(pct * 100, 100)}%`, height: "100%", background: color, borderRadius: 3 }} />
             </div>
-            <span style={{ fontSize: 9, color: C.muted, fontFamily: "monospace" }}>{label}</span>
+            <span style={{ fontSize: 9, color: LC.muted, fontFamily: "monospace" }}>{label}</span>
           </div>
         );
       })}
@@ -1326,15 +1324,15 @@ function NutrientDots({ potassium, sodium, phosphorus, protein }) {
   );
 }
 
-function LoadingDots() {
+function LibLoadingDots() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 0" }}>
       <div style={{ display: "flex", gap: 5 }}>
         {[0, 1, 2].map(i => (
-          <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: C.accent, animation: `bl 1.1s ${i * 0.18}s infinite ease-in-out` }} />
+          <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: LC.accent, animation: `bl 1.1s ${i * 0.18}s infinite ease-in-out` }} />
         ))}
       </div>
-      <span style={{ color: C.muted, fontSize: 12, fontFamily: "monospace" }}>Analyzing & saving to library...</span>
+      <span style={{ color: LC.muted, fontSize: 12, fontFamily: "monospace" }}>Analyzing & saving to library...</span>
       <style>{`@keyframes bl{0%,80%,100%{transform:scale(0.45);opacity:0.25}40%{transform:scale(1);opacity:1}}`}</style>
     </div>
   );
@@ -1366,20 +1364,20 @@ function RecipeLibrary() {
           const result = await window.storage.get("ckd-recipe-library");
           if (result?.value) {
             const saved = JSON.parse(result.value);
-            setRecipes(saved.length > 0 ? saved : DEFAULT_RECIPES);
+            setRecipes(saved.length > 0 ? saved : LIB_DEFAULT_RECIPES);
           } else {
-            setRecipes(DEFAULT_RECIPES);
+            setRecipes(LIB_DEFAULT_RECIPES);
           }
         } else {
-          setRecipes(DEFAULT_RECIPES);
+          setRecipes(LIB_DEFAULT_RECIPES);
         }
       } catch (e) {
-        setRecipes(DEFAULT_RECIPES);
+        setRecipes(LIB_DEFAULT_RECIPES);
       } finally {
         setStorageLoading(false);
       }
     })();
-    const t = setTimeout(() => { setStorageLoading(false); setRecipes(r => r.length === 0 ? DEFAULT_RECIPES : r); }, 2000);
+    const t = setTimeout(() => { setStorageLoading(false); setRecipes(r => r.length === 0 ? LIB_DEFAULT_RECIPES : r); }, 2000);
     return () => clearTimeout(t);
   }, []);
 
@@ -1464,7 +1462,7 @@ Return ONLY valid JSON:
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: MODEL, max_tokens: 1200, messages }),
+        body: JSON.stringify({ model: API_MODEL, max_tokens: 1200, messages }),
       });
       const data = await res.json();
       const text = data.content?.map(b => b.text || "").join("") || "";
@@ -1504,28 +1502,28 @@ Return ONLY valid JSON:
 
   if (storageLoading) {
     return (
-      <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: C.muted, fontFamily: "monospace", fontSize: 14 }}>Loading your recipe library...</div>
+      <div style={{ minHeight: "100vh", background: LC.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: LC.muted, fontFamily: "monospace", fontSize: 14 }}>Loading your recipe library...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Nunito', sans-serif", paddingBottom: 60 }}>
+    <div style={{ minHeight: "100vh", background: LC.bg, color: LC.text, fontFamily: "'Nunito', sans-serif", paddingBottom: 60 }}>
       <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
 
       {/* Header */}
-      <div style={{ background: `linear-gradient(160deg, #0a1a10 0%, #0a0f0d 100%)`, borderBottom: `1px solid ${C.border}`, padding: "24px 20px 0" }}>
+      <div style={{ background: `linear-gradient(160deg, #0a1a10 0%, #0a0f0d 100%)`, borderBottom: `1px solid ${LC.border}`, padding: "24px 20px 0" }}>
         <div style={{ maxWidth: 680, margin: "0 auto" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
             <div>
-              <div style={{ fontSize: 10, color: C.accentDim, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>CKD Vegetarian</div>
-              <h1 style={{ margin: 0, fontSize: "clamp(20px,4vw,30px)", fontWeight: 800, color: C.white, lineHeight: 1.2 }}>
-                My Recipe <span style={{ color: C.accent }}>Library</span>
+              <div style={{ fontSize: 10, color: LC.accentDim, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>CKD Vegetarian</div>
+              <h1 style={{ margin: 0, fontSize: "clamp(20px,4vw,30px)", fontWeight: 800, color: LC.white, lineHeight: 1.2 }}>
+                My Recipe <span style={{ color: LC.accent }}>Library</span>
               </h1>
             </div>
             <button onClick={() => setView("add")}
-              style={{ background: C.accent, color: "#061008", border: "none", borderRadius: 12, padding: "10px 18px", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "'Nunito', sans-serif", whiteSpace: "nowrap", flexShrink: 0 }}>
+              style={{ background: LC.accent, color: "#061008", border: "none", borderRadius: 12, padding: "10px 18px", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "'Nunito', sans-serif", whiteSpace: "nowrap", flexShrink: 0 }}>
               + Add Recipe
             </button>
           </div>
@@ -1534,7 +1532,7 @@ Return ONLY valid JSON:
           <div style={{ display: "flex", gap: 0 }}>
             {[["library", `📚 Library (${recipes.length})`], ["add", "➕ Add New"]].map(([key, label]) => (
               <button key={key} onClick={() => setView(key)}
-                style={{ padding: "10px 20px", border: "none", background: "transparent", color: view === key ? C.accent : C.muted, fontSize: 13, fontWeight: view === key ? 700 : 400, cursor: "pointer", fontFamily: "'Nunito', sans-serif", borderBottom: `2px solid ${view === key ? C.accent : "transparent"}`, transition: "all 0.2s" }}>
+                style={{ padding: "10px 20px", border: "none", background: "transparent", color: view === key ? LC.accent : LC.muted, fontSize: 13, fontWeight: view === key ? 700 : 400, cursor: "pointer", fontFamily: "'Nunito', sans-serif", borderBottom: `2px solid ${view === key ? LC.accent : "transparent"}`, transition: "all 0.2s" }}>
                 {label}
               </button>
             ))}
@@ -1548,24 +1546,24 @@ Return ONLY valid JSON:
         {view === "library" && (
           <div>
             {/* Search & filters */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 20 }}>
+            <div style={{ background: LC.card, border: `1px solid ${LC.border}`, borderRadius: 14, padding: 16, marginBottom: 20 }}>
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="🔍 Search recipes..."
-                style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", color: C.white, fontSize: 14, outline: "none", fontFamily: "'Nunito', sans-serif", boxSizing: "border-box", marginBottom: 12 }} />
+                style={{ width: "100%", background: LC.surface, border: `1px solid ${LC.border}`, borderRadius: 10, padding: "10px 14px", color: LC.white, fontSize: 14, outline: "none", fontFamily: "'Nunito', sans-serif", boxSizing: "border-box", marginBottom: 12 }} />
               <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 10 }}>
-                {CUISINES.map(c => (
+                {LIB_CUISINES.map(c => (
                   <button key={c} onClick={() => setCuisineFilter(c)}
-                    style={{ background: cuisineFilter === c ? C.accent : "transparent", color: cuisineFilter === c ? "#061008" : C.muted, border: `1px solid ${cuisineFilter === c ? C.accent : C.border}`, borderRadius: 20, padding: "5px 12px", fontSize: 11, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "monospace", fontWeight: cuisineFilter === c ? 700 : 400 }}>
+                    style={{ background: cuisineFilter === c ? LC.accent : "transparent", color: cuisineFilter === c ? "#061008" : LC.muted, border: `1px solid ${cuisineFilter === c ? LC.accent : LC.border}`, borderRadius: 20, padding: "5px 12px", fontSize: 11, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "monospace", fontWeight: cuisineFilter === c ? 700 : 400 }}>
                     {c}
                   </button>
                 ))}
               </div>
               <div style={{ display: "flex", gap: 6 }}>
                 {["All", "safe", "caution", "avoid"].map(s => {
-                  const sm = SAFETY_MAP[s];
+                  const sm = LIB_SAFETY_MAP[s];
                   return (
                     <button key={s} onClick={() => setSafetyFilter(s)}
-                      style={{ background: safetyFilter === s ? (sm?.bg || C.surface) : "transparent", color: safetyFilter === s ? (sm?.color || C.accent) : C.muted, border: `1px solid ${safetyFilter === s ? (sm?.color || C.accent) : C.border}`, borderRadius: 20, padding: "5px 12px", fontSize: 11, cursor: "pointer", fontFamily: "monospace", textTransform: "capitalize" }}>
+                      style={{ background: safetyFilter === s ? (sm?.bg || LC.surface) : "transparent", color: safetyFilter === s ? (sm?.color || LC.accent) : LC.muted, border: `1px solid ${safetyFilter === s ? (sm?.color || LC.accent) : LC.border}`, borderRadius: 20, padding: "5px 12px", fontSize: 11, cursor: "pointer", fontFamily: "monospace", textTransform: "capitalize" }}>
                       {s === "All" ? "All Safety" : sm?.label}
                     </button>
                   );
@@ -1576,15 +1574,15 @@ Return ONLY valid JSON:
             {filtered.length === 0 ? (
               <div style={{ textAlign: "center", padding: "60px 20px" }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>🌿</div>
-                <div style={{ color: C.muted, fontFamily: "monospace", fontSize: 14, marginBottom: 8 }}>
+                <div style={{ color: LC.muted, fontFamily: "monospace", fontSize: 14, marginBottom: 8 }}>
                   {recipes.length === 0 ? "Your library is empty" : "No recipes match your filters"}
                 </div>
-                <div style={{ fontSize: 12, color: C.muted }}>
+                <div style={{ fontSize: 12, color: LC.muted }}>
                   {recipes.length === 0 ? "Add your first recipe to get started!" : "Try adjusting your search or filters"}
                 </div>
                 {recipes.length === 0 && (
                   <button onClick={() => setView("add")}
-                    style={{ marginTop: 20, background: C.accent, color: "#061008", border: "none", borderRadius: 10, padding: "12px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito', sans-serif" }}>
+                    style={{ marginTop: 20, background: LC.accent, color: "#061008", border: "none", borderRadius: 10, padding: "12px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Nunito', sans-serif" }}>
                     + Add First Recipe
                   </button>
                 )}
@@ -1593,9 +1591,9 @@ Return ONLY valid JSON:
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
                 {filtered.map(recipe => (
                   <div key={recipe.id} onClick={() => { setSelected(recipe); setView("detail"); }}
-                    style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", cursor: "pointer", transition: "all 0.2s", animation: "fadeIn 0.3s ease" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = C.cardHover; e.currentTarget.style.borderColor = C.accentDim; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = C.card; e.currentTarget.style.borderColor = C.border; }}>
+                    style={{ background: LC.card, border: `1px solid ${LC.border}`, borderRadius: 14, overflow: "hidden", cursor: "pointer", transition: "all 0.2s", animation: "fadeIn 0.3s ease" }}
+                    onMouseEnter={e => { e.currentTarget.style.background = LC.cardHover; e.currentTarget.style.borderColor = LC.accentDim; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = LC.card; e.currentTarget.style.borderColor = LC.border; }}>
                     <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
                     {/* Photo or placeholder */}
@@ -1605,17 +1603,17 @@ Return ONLY valid JSON:
                         : <div style={{ fontSize: 48, opacity: 0.4 }}>🍽</div>
                       }
                       <div style={{ position: "absolute", top: 10, right: 10 }}>
-                        <SafetyBadge level={recipe.safetyLevel} />
+                        <LibSafetyBadge level={recipe.safetyLevel} />
                       </div>
                     </div>
 
                     <div style={{ padding: 14 }}>
-                      <div style={{ fontWeight: 700, fontSize: 15, color: C.white, marginBottom: 4, lineHeight: 1.3 }}>{recipe.dishName}</div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: LC.white, marginBottom: 4, lineHeight: 1.3 }}>{recipe.dishName}</div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                        <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>{recipe.cuisine}</span>
-                        <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>Saved {recipe.savedAt}</span>
+                        <span style={{ fontSize: 11, color: LC.muted, fontFamily: "monospace" }}>{recipe.cuisine}</span>
+                        <span style={{ fontSize: 10, color: LC.muted, fontFamily: "monospace" }}>Saved {recipe.savedAt}</span>
                       </div>
-                      <NutrientDots
+                      <LibNutrientDots
                         potassium={recipe.nutritionAfterSwaps?.potassium || recipe.nutritionPerServing?.potassium || 0}
                         sodium={recipe.nutritionAfterSwaps?.sodium || recipe.nutritionPerServing?.sodium || 0}
                         phosphorus={recipe.nutritionAfterSwaps?.phosphorus || recipe.nutritionPerServing?.phosphorus || 0}
@@ -1632,14 +1630,14 @@ Return ONLY valid JSON:
         {/* ADD VIEW */}
         {view === "add" && (
           <div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Add to Library</div>
+            <div style={{ background: LC.card, border: `1px solid ${LC.border}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: LC.muted, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>Add to Library</div>
 
               {/* Mode toggle */}
-              <div style={{ display: "flex", background: C.surface, borderRadius: 10, padding: 4, marginBottom: 16, gap: 4 }}>
+              <div style={{ display: "flex", background: LC.surface, borderRadius: 10, padding: 4, marginBottom: 16, gap: 4 }}>
                 {[["name", "🍽 Dish Name"], ["paste", "📋 Paste Recipe"]].map(([key, label]) => (
                   <button key={key} onClick={() => setMode(key)}
-                    style={{ flex: 1, padding: "9px 12px", border: "none", borderRadius: 8, background: mode === key ? C.accent : "transparent", color: mode === key ? "#061008" : C.muted, fontSize: 13, fontWeight: mode === key ? 700 : 400, cursor: "pointer", fontFamily: "'Nunito', sans-serif", transition: "all 0.2s" }}>
+                    style={{ flex: 1, padding: "9px 12px", border: "none", borderRadius: 8, background: mode === key ? LC.accent : "transparent", color: mode === key ? "#061008" : LC.muted, fontSize: 13, fontWeight: mode === key ? 700 : 400, cursor: "pointer", fontFamily: "'Nunito', sans-serif", transition: "all 0.2s" }}>
                     {label}
                   </button>
                 ))}
@@ -1648,55 +1646,55 @@ Return ONLY valid JSON:
               {mode === "name" ? (
                 <input value={dishInput} onChange={e => setDishInput(e.target.value)}
                   placeholder="e.g. Aloo Gobi, Pasta Arrabiata, Bean Tacos..."
-                  style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", color: C.white, fontSize: 14, outline: "none", fontFamily: "'Nunito', sans-serif", boxSizing: "border-box", marginBottom: 12 }} />
+                  style={{ width: "100%", background: LC.surface, border: `1px solid ${LC.border}`, borderRadius: 10, padding: "12px 16px", color: LC.white, fontSize: 14, outline: "none", fontFamily: "'Nunito', sans-serif", boxSizing: "border-box", marginBottom: 12 }} />
               ) : (
                 <textarea value={recipeInput} onChange={e => setRecipeInput(e.target.value)}
                   placeholder={"Paste your ingredients list or full recipe...\n\ne.g.\n2 potatoes\n1 cup tomatoes\n1 tsp salt\n..."}
                   rows={6}
-                  style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", color: C.white, fontSize: 14, outline: "none", fontFamily: "monospace", resize: "vertical", boxSizing: "border-box", marginBottom: 12 }} />
+                  style={{ width: "100%", background: LC.surface, border: `1px solid ${LC.border}`, borderRadius: 10, padding: "12px 16px", color: LC.white, fontSize: 14, outline: "none", fontFamily: "monospace", resize: "vertical", boxSizing: "border-box", marginBottom: 12 }} />
               )}
 
               {/* Cuisine + servings */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, marginBottom: 14 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Cuisine</label>
+                  <label style={{ display: "block", fontSize: 11, color: LC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Cuisine</label>
                   <select value={cuisine} onChange={e => setCuisine(e.target.value)}
-                    style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", color: C.white, fontSize: 14, outline: "none", fontFamily: "'Nunito', sans-serif" }}>
-                    {CUISINES.filter(c => c !== "All").map(c => <option key={c} value={c}>{c}</option>)}
+                    style={{ width: "100%", background: LC.surface, border: `1px solid ${LC.border}`, borderRadius: 10, padding: "10px 14px", color: LC.white, fontSize: 14, outline: "none", fontFamily: "'Nunito', sans-serif" }}>
+                    {LIB_CUISINES.filter(c => c !== "All").map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Serves</label>
+                  <label style={{ display: "block", fontSize: 11, color: LC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Serves</label>
                   <input value={servings} onChange={e => setServings(e.target.value)} type="number" min="1" max="20"
-                    style={{ width: 70, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", color: C.white, fontSize: 14, outline: "none", fontFamily: "monospace" }} />
+                    style={{ width: 70, background: LC.surface, border: `1px solid ${LC.border}`, borderRadius: 10, padding: "10px 14px", color: LC.white, fontSize: 14, outline: "none", fontFamily: "monospace" }} />
                 </div>
               </div>
 
               {/* Photo upload */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Photo (optional)</label>
+                <label style={{ display: "block", fontSize: 11, color: LC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Photo (optional)</label>
                 <div onClick={() => fileRef.current?.click()}
-                  style={{ border: `2px dashed ${C.border}`, borderRadius: 12, padding: "20px", textAlign: "center", cursor: "pointer", background: C.surface, transition: "all 0.2s", overflow: "hidden" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = C.accentDim}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                  style={{ border: `2px dashed ${LC.border}`, borderRadius: 12, padding: "20px", textAlign: "center", cursor: "pointer", background: LC.surface, transition: "all 0.2s", overflow: "hidden" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = LC.accentDim}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = LC.border}>
                   {photoPreview
                     ? <img src={photoPreview} alt="preview" style={{ maxHeight: 160, borderRadius: 8, objectFit: "cover", width: "100%" }} />
                     : <div>
                         <div style={{ fontSize: 28, marginBottom: 8 }}>📷</div>
-                        <div style={{ fontSize: 13, color: C.muted }}>Tap to upload a photo of your dish</div>
-                        <div style={{ fontSize: 11, color: C.muted, marginTop: 4, fontFamily: "monospace" }}>JPG, PNG supported</div>
+                        <div style={{ fontSize: 13, color: LC.muted }}>Tap to upload a photo of your dish</div>
+                        <div style={{ fontSize: 11, color: LC.muted, marginTop: 4, fontFamily: "monospace" }}>JPG, PNG supported</div>
                       </div>
                   }
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} style={{ display: "none" }} />
-                {photoPreview && <button onClick={() => { setPhoto(null); setPhotoPreview(null); }} style={{ marginTop: 8, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 8, padding: "4px 12px", color: C.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace" }}>Remove photo</button>}
+                {photoPreview && <button onClick={() => { setPhoto(null); setPhotoPreview(null); }} style={{ marginTop: 8, background: "transparent", border: `1px solid ${LC.border}`, borderRadius: 8, padding: "4px 12px", color: LC.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace" }}>Remove photo</button>}
               </div>
 
               <button onClick={analyzeAndSave} disabled={loading || !(mode === "name" ? dishInput : recipeInput).trim()}
-                style={{ width: "100%", background: loading ? C.accentDim : C.accent, color: "#061008", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Nunito', sans-serif", transition: "background 0.2s" }}>
+                style={{ width: "100%", background: loading ? LC.accentDim : LC.accent, color: "#061008", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Nunito', sans-serif", transition: "background 0.2s" }}>
                 {loading ? "Analyzing & Saving..." : "✓ Analyze & Save to Library"}
               </button>
-              {loading && <LoadingDots />}
+              {loading && <LibLoadingDots />}
             </div>
           </div>
         )}
@@ -1705,7 +1703,7 @@ Return ONLY valid JSON:
         {view === "detail" && selected && (
           <div style={{ animation: "fadeIn 0.3s ease" }}>
             <button onClick={() => setView("library")}
-              style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, padding: "8px 16px", color: C.muted, fontSize: 13, cursor: "pointer", fontFamily: "monospace", marginBottom: 16 }}>
+              style={{ background: "transparent", border: `1px solid ${LC.border}`, borderRadius: 10, padding: "8px 16px", color: LC.muted, fontSize: 13, cursor: "pointer", fontFamily: "monospace", marginBottom: 16 }}>
               ← Back to Library
             </button>
 
@@ -1717,24 +1715,24 @@ Return ONLY valid JSON:
             )}
 
             {/* Title + meta */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20, marginBottom: 14 }}>
+            <div style={{ background: LC.card, border: `1px solid ${LC.border}`, borderRadius: 14, padding: 20, marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 10 }}>
                 <div>
-                  <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 800, color: C.white }}>{selected.dishName}</h2>
+                  <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 800, color: LC.white }}>{selected.dishName}</h2>
                   <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>{selected.cuisine}</span>
-                    <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>· Serves {selected.servings}</span>
-                    <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>· Saved {selected.savedAt}</span>
+                    <span style={{ fontSize: 12, color: LC.muted, fontFamily: "monospace" }}>{selected.cuisine}</span>
+                    <span style={{ fontSize: 12, color: LC.muted, fontFamily: "monospace" }}>· Serves {selected.servings}</span>
+                    <span style={{ fontSize: 12, color: LC.muted, fontFamily: "monospace" }}>· Saved {selected.savedAt}</span>
                   </div>
                 </div>
-                <SafetyBadge level={selected.safetyLevel} />
+                <LibSafetyBadge level={selected.safetyLevel} />
               </div>
-              <p style={{ margin: 0, fontSize: 14, color: C.text, lineHeight: 1.7, background: C.surface, borderRadius: 10, padding: 14 }}>{selected.dietitianNote}</p>
+              <p style={{ margin: 0, fontSize: 14, color: LC.text, lineHeight: 1.7, background: LC.surface, borderRadius: 10, padding: 14 }}>{selected.dietitianNote}</p>
             </div>
 
             {/* Nutrition before/after */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Per Serving Nutrition</div>
+            <div style={{ background: LC.card, border: `1px solid ${LC.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, color: LC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Per Serving Nutrition</div>
               {[
                 { label: "Potassium", before: selected.nutritionPerServing?.potassium, after: selected.nutritionAfterSwaps?.potassium, unit: "mg", limit: 667 },
                 { label: "Sodium", before: selected.nutritionPerServing?.sodium, after: selected.nutritionAfterSwaps?.sodium, unit: "mg", limit: 500 },
@@ -1742,13 +1740,13 @@ Return ONLY valid JSON:
                 { label: "Protein", before: selected.nutritionPerServing?.protein, after: selected.nutritionAfterSwaps?.protein, unit: "g", limit: 17 },
               ].map(({ label, before, after, unit, limit }) => {
                 const pct = Math.min(((after || before) / limit) * 100, 100);
-                const color = (after || before) > limit ? C.danger : pct > 75 ? C.warn : C.accent;
+                const color = (after || before) > limit ? LC.danger : pct > 75 ? LC.warn : LC.accent;
                 return (
                   <div key={label} style={{ marginBottom: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                      <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
+                      <span style={{ fontSize: 12, color: LC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
                       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        {before !== after && <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textDecoration: "line-through" }}>{Math.round(before)}{unit}</span>}
+                        {before !== after && <span style={{ fontSize: 11, color: LC.muted, fontFamily: "monospace", textDecoration: "line-through" }}>{Math.round(before)}{unit}</span>}
                         <span style={{ fontSize: 12, color, fontFamily: "monospace", fontWeight: 700 }}>{Math.round(after || before)}{unit}</span>
                       </div>
                     </div>
@@ -1762,22 +1760,22 @@ Return ONLY valid JSON:
 
             {/* Ingredients */}
             {selected.ingredients?.length > 0 && (
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
-                <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Ingredients</div>
+              <div style={{ background: LC.card, border: `1px solid ${LC.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
+                <div style={{ fontSize: 11, color: LC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Ingredients</div>
                 {selected.ingredients.map((ing, i) => {
-                  const riskColor = ing.ckdRisk === "high" ? C.danger : ing.ckdRisk === "medium" ? C.warn : C.accent;
+                  const riskColor = ing.ckdRisk === "high" ? LC.danger : ing.ckdRisk === "medium" ? LC.warn : LC.accent;
                   return (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < selected.ingredients.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                      <span style={{ fontSize: 14, color: C.text }}>{ing.amount} {ing.name}</span>
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < selected.ingredients.length - 1 ? `1px solid ${LC.border}` : "none" }}>
+                      <span style={{ fontSize: 14, color: LC.text }}>{ing.amount} {ing.name}</span>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: riskColor, flexShrink: 0 }} />
                     </div>
                   );
                 })}
                 <div style={{ display: "flex", gap: 16, marginTop: 12 }}>
-                  {[["low", C.accent], ["medium", C.warn], ["high", C.danger]].map(([label, color]) => (
+                  {[["low", LC.accent], ["medium", LC.warn], ["high", LC.danger]].map(([label, color]) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <div style={{ width: 7, height: 7, borderRadius: "50%", background: color }} />
-                      <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "capitalize" }}>{label} risk</span>
+                      <span style={{ fontSize: 10, color: LC.muted, fontFamily: "monospace", textTransform: "capitalize" }}>{label} risk</span>
                     </div>
                   ))}
                 </div>
@@ -1786,16 +1784,16 @@ Return ONLY valid JSON:
 
             {/* Substitutions */}
             {selected.substitutions?.length > 0 && (
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
-                <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>CKD-Safe Swaps</div>
+              <div style={{ background: LC.card, border: `1px solid ${LC.border}`, borderRadius: 14, padding: 18, marginBottom: 14 }}>
+                <div style={{ fontSize: 11, color: LC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>CKD-Safe Swaps</div>
                 {selected.substitutions.map((sub, i) => (
-                  <div key={i} style={{ background: C.surface, borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                  <div key={i} style={{ background: LC.surface, borderRadius: 10, padding: 12, marginBottom: 8 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 13, color: C.danger, fontFamily: "monospace", textDecoration: "line-through" }}>{sub.original}</span>
-                      <span style={{ color: C.muted }}>→</span>
-                      <span style={{ fontSize: 13, color: C.accent, fontFamily: "monospace", fontWeight: 600 }}>{sub.substitute}</span>
+                      <span style={{ fontSize: 13, color: LC.danger, fontFamily: "monospace", textDecoration: "line-through" }}>{sub.original}</span>
+                      <span style={{ color: LC.muted }}>→</span>
+                      <span style={{ fontSize: 13, color: LC.accent, fontFamily: "monospace", fontWeight: 600 }}>{sub.substitute}</span>
                     </div>
-                    <div style={{ fontSize: 11, color: C.warn, fontFamily: "monospace" }}>💜 {sub.reduction}</div>
+                    <div style={{ fontSize: 11, color: LC.warn, fontFamily: "monospace" }}>💜 {sub.reduction}</div>
                   </div>
                 ))}
               </div>
@@ -1803,21 +1801,21 @@ Return ONLY valid JSON:
 
             {/* Top tip */}
             {selected.topTip && (
-              <div style={{ background: "#0d1a10", border: `1px solid ${C.accentDim}`, borderRadius: 12, padding: 16, marginBottom: 16, display: "flex", gap: 12 }}>
+              <div style={{ background: "#0d1a10", border: `1px solid ${LC.accentDim}`, borderRadius: 12, padding: 16, marginBottom: 16, display: "flex", gap: 12 }}>
                 <span style={{ fontSize: 20 }}>💡</span>
                 <div>
-                  <div style={{ fontSize: 11, color: C.accent, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Dietitian Tip</div>
-                  <p style={{ margin: 0, fontSize: 14, color: C.text, lineHeight: 1.6 }}>{selected.topTip}</p>
+                  <div style={{ fontSize: 11, color: LC.accent, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Dietitian Tip</div>
+                  <p style={{ margin: 0, fontSize: 14, color: LC.text, lineHeight: 1.6 }}>{selected.topTip}</p>
                 </div>
               </div>
             )}
 
             <button onClick={() => deleteRecipe(selected.id)}
-              style={{ width: "100%", background: "transparent", border: `1px solid ${C.danger}55`, borderRadius: 12, padding: "12px", color: C.danger, fontSize: 14, cursor: "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 600 }}>
+              style={{ width: "100%", background: "transparent", border: `1px solid ${LC.danger}55`, borderRadius: 12, padding: "12px", color: LC.danger, fontSize: 14, cursor: "pointer", fontFamily: "'Nunito', sans-serif", fontWeight: 600 }}>
               🗑 Delete from Library
             </button>
 
-            <p style={{ marginTop: 20, fontSize: 11, color: C.muted, textAlign: "center", fontFamily: "monospace", lineHeight: 1.6 }}>
+            <p style={{ marginTop: 20, fontSize: 11, color: LC.muted, textAlign: "center", fontFamily: "monospace", lineHeight: 1.6 }}>
               Always consult your renal dietitian before making dietary changes.
             </p>
           </div>
@@ -1828,11 +1826,11 @@ Return ONLY valid JSON:
 }
 
 
-// ─────────────────────────────────────────────
-// HOME + NAVIGATION
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
+// HOME SCREEN
+// ══════════════════════════════════════════
 
-const C = {
+const HC = {
   bg: "#07100a",
   surface: "#0d1a10",
   card: "#112115",
@@ -1851,13 +1849,13 @@ const C = {
   dim: "#0a1a0e",
 };
 
-const FEATURES = [
+const HOME_FEATURES = [
   {
     id: "checker",
     icon: "🔍",
     title: "Food Safety\nChecker",
     desc: "Is this food safe for my kidneys? Instant analysis.",
-    color: C.accent,
+    color: HC.accent,
     glow: "#3ddc7230",
     tag: "Quick Check",
   },
@@ -1866,7 +1864,7 @@ const FEATURES = [
     icon: "📋",
     title: "Daily Food\nTracker",
     desc: "Log meals and track potassium, sodium, phosphorus & protein.",
-    color: C.sky,
+    color: HC.sky,
     glow: "#40c8f030",
     tag: "Track Today",
   },
@@ -1875,7 +1873,7 @@ const FEATURES = [
     icon: "🔄",
     title: "Recipe\nConverter",
     desc: "Paste any recipe and get CKD-safe swaps automatically.",
-    color: C.lavender,
+    color: HC.lavender,
     glow: "#a080f030",
     tag: "Modify Recipe",
   },
@@ -1884,7 +1882,7 @@ const FEATURES = [
     icon: "📚",
     title: "Recipe\nLibrary",
     desc: "Browse & save your personal collection of kidney-safe dishes.",
-    color: C.gold,
+    color: HC.gold,
     glow: "#f0c04030",
     tag: "17 Recipes",
   },
@@ -1893,7 +1891,7 @@ const FEATURES = [
     icon: "🗓",
     title: "Meal\nPlanner",
     desc: "Generate a full week of CKD-safe vegetarian meal plans.",
-    color: C.rose,
+    color: HC.rose,
     glow: "#f0608030",
     tag: "Coming Soon",
     soon: true,
@@ -1910,7 +1908,7 @@ const FEATURES = [
   },
 ];
 
-const TIPS = [
+const HOME_TIPS = [
   "💧 Double-boil potatoes and discard water to cut potassium by up to 50%",
   "🥦 Cauliflower is one of the safest vegetables for CKD — use it freely",
   "🍚 White rice is safer than brown rice for CKD — lower in phosphorus",
@@ -1921,7 +1919,7 @@ const TIPS = [
   "🫚 Ghee and olive oil are both kidney-safe fats in small amounts",
 ];
 
-function FeatureCard({ feature, onClick, index }) {
+function HomeFeatureCard({ feature, onClick, index }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
@@ -1929,8 +1927,8 @@ function FeatureCard({ feature, onClick, index }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: hovered && !feature.soon ? C.cardHover : C.card,
-        border: `1px solid ${hovered && !feature.soon ? feature.color + "66" : C.border}`,
+        background: hovered && !feature.soon ? HC.cardHover : HC.card,
+        border: `1px solid ${hovered && !feature.soon ? feature.color + "66" : HC.border}`,
         borderRadius: 18,
         padding: "20px 18px",
         cursor: feature.soon ? "default" : "pointer",
@@ -1953,9 +1951,9 @@ function FeatureCard({ feature, onClick, index }) {
         <span style={{ fontSize: 28 }}>{feature.icon}</span>
         <span style={{
           fontSize: 10, fontFamily: "monospace", letterSpacing: 1,
-          color: feature.soon ? C.muted : feature.color,
-          background: feature.soon ? C.surface : `${feature.color}18`,
-          border: `1px solid ${feature.soon ? C.border : feature.color + "44"}`,
+          color: feature.soon ? HC.muted : feature.color,
+          background: feature.soon ? HC.surface : `${feature.color}18`,
+          border: `1px solid ${feature.soon ? HC.border : feature.color + "44"}`,
           borderRadius: 10, padding: "3px 8px", textTransform: "uppercase",
         }}>
           {feature.tag}
@@ -1963,13 +1961,13 @@ function FeatureCard({ feature, onClick, index }) {
       </div>
 
       <div style={{
-        fontSize: 15, fontWeight: 700, color: feature.soon ? C.muted : C.white,
+        fontSize: 15, fontWeight: 700, color: feature.soon ? HC.muted : HC.white,
         lineHeight: 1.3, marginBottom: 8, whiteSpace: "pre-line",
         fontFamily: "'Outfit', sans-serif",
       }}>
         {feature.title}
       </div>
-      <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
+      <div style={{ fontSize: 12, color: HC.muted, lineHeight: 1.6 }}>
         {feature.desc}
       </div>
 
@@ -1986,7 +1984,7 @@ function FeatureCard({ feature, onClick, index }) {
   );
 }
 
-function QuickStats() {
+function HomeQuickStats() {
   const stats = [
     { label: "Potassium limit", val: "2,000mg", sub: "daily" },
     { label: "Sodium limit", val: "1,500mg", sub: "daily" },
@@ -1996,9 +1994,9 @@ function QuickStats() {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8, marginBottom: 24 }}>
       {stats.map((s, i) => (
-        <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 14px" }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: C.accent, fontFamily: "monospace" }}>{s.val}</div>
-          <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 0.5 }}>{s.label}</div>
+        <div key={i} style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 12, padding: "10px 14px" }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: HC.accent, fontFamily: "monospace" }}>{s.val}</div>
+          <div style={{ fontSize: 10, color: HC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 0.5 }}>{s.label}</div>
         </div>
       ))}
     </div>
@@ -2007,7 +2005,7 @@ function QuickStats() {
 
 // ── Inline Mini-Apps ──────────────────────────────────────────────────────────
 
-function QuickChecker({ onBack }) {
+function HomeQuickChecker({ onBack }) {
   const [food, setFood] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -2031,51 +2029,51 @@ function QuickChecker({ onBack }) {
     finally { setLoading(false); }
   };
 
-  const sc = result ? ({ safe: C.accent, caution: C.gold, avoid: C.rose }[result.safetyLevel] || C.gold) : C.accent;
+  const sc = result ? ({ safe: HC.accent, caution: HC.gold, avoid: HC.rose }[result.safetyLevel] || HC.gold) : HC.accent;
   const sl = result ? ({ safe: "✓ CKD Safe", caution: "⚠ Use Caution", avoid: "✗ Avoid" }[result.safetyLevel]) : "";
 
   return (
     <div>
-      <BackBtn onBack={onBack} label="Food Safety Checker" />
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
+      <HomeBackBtn onBack={onBack} label="Food Safety Checker" />
+      <div style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
         <div style={{ display: "flex", gap: 8 }}>
           <input value={food} onChange={e => setFood(e.target.value)} onKeyDown={e => e.key === "Enter" && check()}
             placeholder="e.g. spinach, tofu, khichdi..." autoFocus
-            style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "11px 14px", color: C.white, fontSize: 14, outline: "none", fontFamily: "'Outfit', sans-serif" }} />
+            style={{ flex: 1, background: HC.surface, border: `1px solid ${HC.border}`, borderRadius: 10, padding: "11px 14px", color: HC.white, fontSize: 14, outline: "none", fontFamily: "'Outfit', sans-serif" }} />
           <button onClick={check} disabled={loading || !food.trim()}
-            style={{ background: C.accent, color: "#04100a", border: "none", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}>
+            style={{ background: HC.accent, color: "#04100a", border: "none", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}>
             {loading ? "..." : "Check"}
           </button>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
           {["Khichdi","Poha","Tofu","Cauliflower","Banana","Spinach"].map(f => (
             <button key={f} onClick={() => setFood(f)}
-              style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 20, padding: "4px 10px", color: C.muted, fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>
+              style={{ background: "transparent", border: `1px solid ${HC.border}`, borderRadius: 20, padding: "4px 10px", color: HC.muted, fontSize: 11, cursor: "pointer", fontFamily: "monospace" }}>
               {f}
             </button>
           ))}
         </div>
       </div>
-      {loading && <div style={{ textAlign: "center", padding: "24px", color: C.muted, fontFamily: "monospace", fontSize: 13 }}>Analyzing...</div>}
+      {loading && <div style={{ textAlign: "center", padding: "24px", color: HC.muted, fontFamily: "monospace", fontSize: 13 }}>Analyzing...</div>}
       {result && (
-        <div style={{ background: C.card, border: `1px solid ${sc}44`, borderRadius: 16, padding: 20, animation: "cardIn 0.4s ease" }}>
+        <div style={{ background: HC.card, border: `1px solid ${sc}44`, borderRadius: 16, padding: 20, animation: "cardIn 0.4s ease" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: C.white, fontFamily: "'Outfit', sans-serif" }}>{result.foodName}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: HC.white, fontFamily: "'Outfit', sans-serif" }}>{result.foodName}</div>
             <span style={{ fontSize: 12, color: sc, background: `${sc}18`, border: `1px solid ${sc}44`, borderRadius: 10, padding: "4px 12px", fontFamily: "monospace", fontWeight: 700 }}>{sl}</span>
           </div>
-          <p style={{ fontSize: 13, color: C.text, lineHeight: 1.7, margin: "0 0 16px", background: C.surface, borderRadius: 10, padding: 12 }}>{result.ckdNote}</p>
+          <p style={{ fontSize: 13, color: HC.text, lineHeight: 1.7, margin: "0 0 16px", background: HC.surface, borderRadius: 10, padding: 12 }}>{result.ckdNote}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8, marginBottom: 14 }}>
             {[["Potassium", result.potassium, "mg", result.potassiumRisk], ["Sodium", result.sodium, "mg", result.sodiumRisk], ["Phosphorus", result.phosphorus, "mg", result.phosphorusRisk], ["Protein", result.protein, "g", result.proteinRisk]].map(([l, v, u, r]) => {
-              const rc = r === "high" ? C.rose : r === "medium" ? C.gold : C.accent;
+              const rc = r === "high" ? HC.rose : r === "medium" ? HC.gold : HC.accent;
               return (
-                <div key={l} style={{ background: C.surface, borderRadius: 10, padding: 10 }}>
-                  <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", marginBottom: 4 }}>{l}</div>
+                <div key={l} style={{ background: HC.surface, borderRadius: 10, padding: 10 }}>
+                  <div style={{ fontSize: 10, color: HC.muted, fontFamily: "monospace", textTransform: "uppercase", marginBottom: 4 }}>{l}</div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: rc, fontFamily: "monospace" }}>{Math.round(v)}{u}</div>
                 </div>
               );
             })}
           </div>
-          <div style={{ background: "#0d1a10", border: `1px solid ${C.accentDim}`, borderRadius: 10, padding: 12, fontSize: 12, color: C.text, lineHeight: 1.6 }}>
+          <div style={{ background: "#0d1a10", border: `1px solid ${HC.accentDim}`, borderRadius: 10, padding: 12, fontSize: 12, color: HC.text, lineHeight: 1.6 }}>
             💡 {result.tip}
           </div>
         </div>
@@ -2084,7 +2082,7 @@ function QuickChecker({ onBack }) {
   );
 }
 
-function RecipeConverter({ onBack }) {
+function HomeRecipeConverter({ onBack }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -2108,58 +2106,58 @@ function RecipeConverter({ onBack }) {
     finally { setLoading(false); }
   };
 
-  const sc = (s) => ({ safe: C.accent, caution: C.gold, avoid: C.rose }[s] || C.gold);
+  const sc = (s) => ({ safe: HC.accent, caution: HC.gold, avoid: HC.rose }[s] || HC.gold);
   const sl = (s) => ({ safe: "✓ Safe", caution: "⚠ Caution", avoid: "✗ Avoid" }[s] || s);
 
   return (
     <div>
-      <BackBtn onBack={onBack} label="Recipe Converter" />
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
+      <HomeBackBtn onBack={onBack} label="Recipe Converter" />
+      <div style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 16, padding: 20, marginBottom: 16 }}>
         <textarea value={input} onChange={e => setInput(e.target.value)} rows={4}
           placeholder={"Type a dish name or paste ingredients:\ne.g. Aloo Gobi\nor:\n2 potatoes, 1 cup tomatoes, spices..."}
-          style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", color: C.white, fontSize: 14, outline: "none", fontFamily: "monospace", resize: "none", boxSizing: "border-box", marginBottom: 12 }} />
+          style={{ width: "100%", background: HC.surface, border: `1px solid ${HC.border}`, borderRadius: 10, padding: "12px 14px", color: HC.white, fontSize: 14, outline: "none", fontFamily: "monospace", resize: "none", boxSizing: "border-box", marginBottom: 12 }} />
         <button onClick={convert} disabled={loading || !input.trim()}
-          style={{ width: "100%", background: C.lavender, color: "#1a0a2e", border: "none", borderRadius: 10, padding: "12px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}>
+          style={{ width: "100%", background: HC.lavender, color: "#1a0a2e", border: "none", borderRadius: 10, padding: "12px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}>
           {loading ? "Converting..." : "🔄 Convert to CKD-Safe →"}
         </button>
       </div>
-      {loading && <div style={{ textAlign: "center", padding: "24px", color: C.muted, fontFamily: "monospace", fontSize: 13 }}>Finding safe swaps...</div>}
+      {loading && <div style={{ textAlign: "center", padding: "24px", color: HC.muted, fontFamily: "monospace", fontSize: 13 }}>Finding safe swaps...</div>}
       {result && (
         <div style={{ animation: "cardIn 0.4s ease" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, marginBottom: 14, alignItems: "center" }}>
-            <div style={{ background: C.card, border: `1px solid ${sc(result.safetyBefore)}44`, borderRadius: 12, padding: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 4 }}>BEFORE</div>
+            <div style={{ background: HC.card, border: `1px solid ${sc(result.safetyBefore)}44`, borderRadius: 12, padding: 12, textAlign: "center" }}>
+              <div style={{ fontSize: 10, color: HC.muted, fontFamily: "monospace", marginBottom: 4 }}>BEFORE</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: sc(result.safetyBefore) }}>{sl(result.safetyBefore)}</div>
             </div>
-            <div style={{ color: C.muted, fontSize: 18, textAlign: "center" }}>→</div>
-            <div style={{ background: C.card, border: `1px solid ${sc(result.safetyAfter)}44`, borderRadius: 12, padding: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 4 }}>AFTER</div>
+            <div style={{ color: HC.muted, fontSize: 18, textAlign: "center" }}>→</div>
+            <div style={{ background: HC.card, border: `1px solid ${sc(result.safetyAfter)}44`, borderRadius: 12, padding: 12, textAlign: "center" }}>
+              <div style={{ fontSize: 10, color: HC.muted, fontFamily: "monospace", marginBottom: 4 }}>AFTER</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: sc(result.safetyAfter) }}>{sl(result.safetyAfter)}</div>
             </div>
           </div>
           {result.substitutions?.map((s, i) => (
-            <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14, marginBottom: 8 }}>
+            <div key={i} style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 12, padding: 14, marginBottom: 8 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 4 }}>
-                <span style={{ color: C.rose, fontFamily: "monospace", fontSize: 13, textDecoration: "line-through" }}>{s.original}</span>
-                <span style={{ color: C.muted }}>→</span>
-                <span style={{ color: C.accent, fontFamily: "monospace", fontSize: 13, fontWeight: 700 }}>{s.substitute}</span>
+                <span style={{ color: HC.rose, fontFamily: "monospace", fontSize: 13, textDecoration: "line-through" }}>{s.original}</span>
+                <span style={{ color: HC.muted }}>→</span>
+                <span style={{ color: HC.accent, fontFamily: "monospace", fontSize: 13, fontWeight: 700 }}>{s.substitute}</span>
               </div>
-              <div style={{ fontSize: 11, color: C.lavender, fontFamily: "monospace" }}>💜 {s.reduction}</div>
+              <div style={{ fontSize: 11, color: HC.lavender, fontFamily: "monospace" }}>💜 {s.reduction}</div>
             </div>
           ))}
           {result.cookingTips?.map((t, i) => (
-            <div key={i} style={{ background: "#0d1a10", border: `1px solid ${C.accentDim}`, borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 12, color: C.text, lineHeight: 1.6 }}>
+            <div key={i} style={{ background: "#0d1a10", border: `1px solid ${HC.accentDim}`, borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 12, color: HC.text, lineHeight: 1.6 }}>
               → {t}
             </div>
           ))}
-          <div style={{ background: C.surface, borderRadius: 12, padding: 14, fontSize: 13, color: C.text, lineHeight: 1.7 }}>{result.summary}</div>
+          <div style={{ background: HC.surface, borderRadius: 12, padding: 14, fontSize: 13, color: HC.text, lineHeight: 1.7 }}>{result.summary}</div>
         </div>
       )}
     </div>
   );
 }
 
-function RecipeLibrary({ onBack }) {
+function HomeRecipeLibrary({ onBack }) {
   const DEFAULT_DISHES = [
     { name: "Khichdi", cuisine: "🇮🇳", safe: "safe" },
     { name: "Poha", cuisine: "🇮🇳", safe: "safe" },
@@ -2180,20 +2178,20 @@ function RecipeLibrary({ onBack }) {
     { name: "Greek Salad (modified)", cuisine: "🌍", safe: "caution" },
     { name: "Veggie Sushi Rolls", cuisine: "🌍", safe: "safe" },
   ];
-  const sc = { safe: C.accent, caution: C.gold, avoid: C.rose };
+  const sc = { safe: HC.accent, caution: HC.gold, avoid: HC.rose };
   const sl = { safe: "✓ Safe", caution: "⚠ Caution", avoid: "✗ Avoid" };
   return (
     <div>
-      <BackBtn onBack={onBack} label="Recipe Library" />
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16, marginBottom: 16 }}>
-        <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>
+      <HomeBackBtn onBack={onBack} label="Recipe Library" />
+      <div style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 14, padding: 16, marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: HC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>
           {DEFAULT_DISHES.length} CKD-Safe Recipes
         </div>
         {DEFAULT_DISHES.map((d, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < DEFAULT_DISHES.length - 1 ? `1px solid ${C.border}` : "none" }}>
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < DEFAULT_DISHES.length - 1 ? `1px solid ${HC.border}` : "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 18 }}>{d.cuisine}</span>
-              <span style={{ fontSize: 14, color: C.white, fontFamily: "'Outfit', sans-serif" }}>{d.name}</span>
+              <span style={{ fontSize: 14, color: HC.white, fontFamily: "'Outfit', sans-serif" }}>{d.name}</span>
             </div>
             <span style={{ fontSize: 10, color: sc[d.safe], background: `${sc[d.safe]}18`, border: `1px solid ${sc[d.safe]}44`, borderRadius: 10, padding: "3px 8px", fontFamily: "monospace" }}>
               {sl[d.safe]}
@@ -2201,18 +2199,18 @@ function RecipeLibrary({ onBack }) {
           </div>
         ))}
       </div>
-      <div style={{ background: "#0d1a10", border: `1px solid ${C.accentDim}`, borderRadius: 12, padding: 14, fontSize: 12, color: C.muted, fontFamily: "monospace", textAlign: "center" }}>
+      <div style={{ background: "#0d1a10", border: `1px solid ${HC.accentDim}`, borderRadius: 12, padding: 14, fontSize: 12, color: HC.muted, fontFamily: "monospace", textAlign: "center" }}>
         Open the full Recipe Library app to view details, add photos & add your own recipes
       </div>
     </div>
   );
 }
 
-function BackBtn({ onBack, label }) {
+function HomeBackBtn({ onBack, label }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-      <button onClick={onBack} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "7px 14px", color: C.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace" }}>← Home</button>
-      <span style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: "'Outfit', sans-serif" }}>{label}</span>
+      <button onClick={onBack} style={{ background: HC.surface, border: `1px solid ${HC.border}`, borderRadius: 10, padding: "7px 14px", color: HC.muted, fontSize: 12, cursor: "pointer", fontFamily: "monospace" }}>← Home</button>
+      <span style={{ fontSize: 16, fontWeight: 700, color: HC.white, fontFamily: "'Outfit', sans-serif" }}>{label}</span>
     </div>
   );
 }
@@ -2223,14 +2221,14 @@ function HomeScreen() {
   const [tipIdx, setTipIdx] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setTipIdx(i => (i + 1) % TIPS.length), 5000);
+    const t = setInterval(() => setTipIdx(i => (i + 1) % HOME_TIPS.length), 5000);
     return () => clearInterval(t);
   }, []);
 
   const navigate = (id) => setScreen(id);
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Outfit', sans-serif", paddingBottom: 60 }}>
+    <div style={{ minHeight: "100vh", background: HC.bg, color: HC.text, fontFamily: "'Outfit', sans-serif", paddingBottom: 60 }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
       <style>{`
         @keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -2246,25 +2244,25 @@ function HomeScreen() {
 
           {/* Hero */}
           <div style={{
-            background: `radial-gradient(ellipse at 50% 0%, #1a3d22 0%, ${C.bg} 70%)`,
-            borderBottom: `1px solid ${C.border}`,
+            background: `radial-gradient(ellipse at 50% 0%, #1a3d22 0%, ${HC.bg} 70%)`,
+            borderBottom: `1px solid ${HC.border}`,
             padding: "40px 20px 28px",
             textAlign: "center",
           }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#0d2015", border: `1px solid ${C.accentDim}`, borderRadius: 20, padding: "5px 16px", marginBottom: 18 }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, boxShadow: `0 0 8px ${C.accent}` }} />
-              <span style={{ fontSize: 11, color: C.accent, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase" }}>CKD · Vegetarian · Nutrition</span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#0d2015", border: `1px solid ${HC.accentDim}`, borderRadius: 20, padding: "5px 16px", marginBottom: 18 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: HC.accent, boxShadow: `0 0 8px ${HC.accent}` }} />
+              <span style={{ fontSize: 11, color: HC.accent, fontFamily: "monospace", letterSpacing: 2, textTransform: "uppercase" }}>CKD · Vegetarian · Nutrition</span>
             </div>
-            <h1 style={{ margin: "0 0 10px", fontSize: "clamp(28px,7vw,52px)", fontWeight: 900, color: C.white, lineHeight: 1.1, letterSpacing: -1 }}>
-              Kidney<span style={{ color: C.accent }}>Care</span>
+            <h1 style={{ margin: "0 0 10px", fontSize: "clamp(28px,7vw,52px)", fontWeight: 900, color: HC.white, lineHeight: 1.1, letterSpacing: -1 }}>
+              Kidney<span style={{ color: HC.accent }}>Care</span>
             </h1>
-            <p style={{ color: C.muted, fontSize: 15, margin: "0 0 24px", maxWidth: 360, marginInline: "auto", lineHeight: 1.6 }}>
+            <p style={{ color: HC.muted, fontSize: 15, margin: "0 0 24px", maxWidth: 360, marginInline: "auto", lineHeight: 1.6 }}>
               Your personal guide to eating well with CKD — vegetarian, global cuisines, kidney-safe
             </p>
 
             {/* Rotating tip */}
-            <div key={tipIdx} style={{ background: "#0d2015", border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 16px", maxWidth: 420, marginInline: "auto", animation: "tipSlide 0.4s ease" }}>
-              <span style={{ fontSize: 12, color: C.text, lineHeight: 1.6, fontFamily: "monospace" }}>{TIPS[tipIdx]}</span>
+            <div key={tipIdx} style={{ background: "#0d2015", border: `1px solid ${HC.border}`, borderRadius: 12, padding: "10px 16px", maxWidth: 420, marginInline: "auto", animation: "tipSlide 0.4s ease" }}>
+              <span style={{ fontSize: 12, color: HC.text, lineHeight: 1.6, fontFamily: "monospace" }}>{HOME_TIPS[tipIdx]}</span>
             </div>
           </div>
 
@@ -2272,23 +2270,23 @@ function HomeScreen() {
 
             {/* Daily limits */}
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Your CKD Daily Limits</div>
-              <QuickStats />
+              <div style={{ fontSize: 11, color: HC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Your CKD Daily Limits</div>
+              <HomeQuickStats />
             </div>
 
             {/* Feature grid */}
-            <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>Tools & Features</div>
+            <div style={{ fontSize: 11, color: HC.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>Tools & Features</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-              {FEATURES.map((f, i) => (
-                <FeatureCard key={f.id} feature={f} onClick={navigate} index={i} />
+              {HOME_FEATURES.map((f, i) => (
+                <HomeFeatureCard key={f.id} feature={f} onClick={navigate} index={i} />
               ))}
             </div>
 
             {/* Footer */}
-            <div style={{ marginTop: 32, textAlign: "center", fontSize: 11, color: C.muted, fontFamily: "monospace", lineHeight: 1.8 }}>
+            <div style={{ marginTop: 32, textAlign: "center", fontSize: 11, color: HC.muted, fontFamily: "monospace", lineHeight: 1.8 }}>
               🌿 Always consult your renal dietitian<br />
               before making dietary changes.<br />
-              <span style={{ color: C.accentDim }}>KidneyCare v1.0 · Built for CKD Warriors</span>
+              <span style={{ color: HC.accentDim }}>KidneyCare v1.0 · Built for CKD Warriors</span>
             </div>
           </div>
         </div>
@@ -2297,41 +2295,41 @@ function HomeScreen() {
       {/* ── INNER SCREENS ── */}
       {screen !== "home" && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "24px 16px", animation: "fadeIn 0.3s ease" }}>
-          {screen === "checker" && <QuickChecker onBack={() => setScreen("home")} />}
+          {screen === "checker" && <HomeQuickChecker onBack={() => setScreen("home")} />}
           {screen === "tracker" && (
             <div>
-              <BackBtn onBack={() => setScreen("home")} label="Daily Food Tracker" />
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 32, textAlign: "center" }}>
+              <HomeBackBtn onBack={() => setScreen("home")} label="Daily Food Tracker" />
+              <div style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 16, padding: 32, textAlign: "center" }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: C.white, marginBottom: 8, fontFamily: "'Outfit', sans-serif" }}>Daily Food Tracker</div>
-                <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 20 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: HC.white, marginBottom: 8, fontFamily: "'Outfit', sans-serif" }}>Daily Food Tracker</div>
+                <p style={{ fontSize: 13, color: HC.muted, lineHeight: 1.7, marginBottom: 20 }}>
                   Log your meals and track potassium, sodium, phosphorus & protein across global vegetarian cuisines. Available as a standalone app.
                 </p>
-                <div style={{ background: C.surface, borderRadius: 12, padding: 14, fontSize: 12, color: C.muted, fontFamily: "monospace" }}>
-                  Open the <strong style={{ color: C.sky }}>ckd-food-tracker</strong> artifact to use the full tracker with cuisine quick-picks and daily totals dashboard.
+                <div style={{ background: HC.surface, borderRadius: 12, padding: 14, fontSize: 12, color: HC.muted, fontFamily: "monospace" }}>
+                  Open the <strong style={{ color: HC.sky }}>ckd-food-tracker</strong> artifact to use the full tracker with cuisine quick-picks and daily totals dashboard.
                 </div>
               </div>
             </div>
           )}
-          {screen === "converter" && <RecipeConverter onBack={() => setScreen("home")} />}
-          {screen === "library" && <RecipeLibrary onBack={() => setScreen("home")} />}
+          {screen === "converter" && <HomeRecipeConverter onBack={() => setScreen("home")} />}
+          {screen === "library" && <HomeRecipeLibrary onBack={() => setScreen("home")} />}
           {screen === "planner" && (
             <div>
-              <BackBtn onBack={() => setScreen("home")} label="Meal Planner" />
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 32, textAlign: "center" }}>
+              <HomeBackBtn onBack={() => setScreen("home")} label="Meal Planner" />
+              <div style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 16, padding: 32, textAlign: "center" }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>🗓</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: C.white, marginBottom: 8 }}>Meal Planner — Coming Soon</div>
-                <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>Generate a full week of CKD-safe vegetarian meal plans across Indian, Italian, Mexican and Chinese cuisines. This feature is coming next!</p>
+                <div style={{ fontSize: 16, fontWeight: 700, color: HC.white, marginBottom: 8 }}>Meal Planner — Coming Soon</div>
+                <p style={{ fontSize: 13, color: HC.muted, lineHeight: 1.7 }}>Generate a full week of CKD-safe vegetarian meal plans across Indian, Italian, Mexican and Chinese cuisines. This feature is coming next!</p>
               </div>
             </div>
           )}
           {screen === "labs" && (
             <div>
-              <BackBtn onBack={() => setScreen("home")} label="Lab Tracker" />
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 32, textAlign: "center" }}>
+              <HomeBackBtn onBack={() => setScreen("home")} label="Lab Tracker" />
+              <div style={{ background: HC.card, border: `1px solid ${HC.border}`, borderRadius: 16, padding: 32, textAlign: "center" }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>🧪</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: C.white, marginBottom: 8 }}>Lab Tracker — Coming Soon</div>
-                <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}>Log your monthly bloodwork (creatinine, potassium, GFR) and visualize how your diet choices affect your lab results over time.</p>
+                <div style={{ fontSize: 16, fontWeight: 700, color: HC.white, marginBottom: 8 }}>Lab Tracker — Coming Soon</div>
+                <p style={{ fontSize: 13, color: HC.muted, lineHeight: 1.7 }}>Log your monthly bloodwork (creatinine, potassium, GFR) and visualize how your diet choices affect your lab results over time.</p>
               </div>
             </div>
           )}
@@ -2342,19 +2340,18 @@ function HomeScreen() {
 }
 
 
-// ─────────────────────────────────────────────
-// ROOT APP
-// ─────────────────────────────────────────────
+// ══════════════════════════════════════════
+// ROOT APP — NAVIGATION
+// ══════════════════════════════════════════
 export default function App() {
   const [screen, setScreen] = useState("home");
-
   return (
     <div>
-      {screen === "home" && <HomeScreen onNavigate={setScreen} />}
-      {screen === "checker" && <FoodChecker onBack={() => setScreen("home")} />}
-      {screen === "tracker" && <FoodTracker onBack={() => setScreen("home")} />}
+      {screen === "home"      && <HomeScreen />}
+      {screen === "checker"   && <FoodChecker   onBack={() => setScreen("home")} />}
+      {screen === "tracker"   && <FoodTracker   onBack={() => setScreen("home")} />}
       {screen === "converter" && <RecipeConverter onBack={() => setScreen("home")} />}
-      {screen === "library" && <RecipeLibrary onBack={() => setScreen("home")} />}
+      {screen === "library"   && <RecipeLibrary  onBack={() => setScreen("home")} />}
     </div>
   );
 }
