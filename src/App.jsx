@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { lookupFood } from "./foodData";
+import { lookupFood, cacheFood, getCacheStats } from "./foodData";
 
 const API_MODEL = "claude-sonnet-4-20250514";
 
@@ -319,6 +319,18 @@ function Section({title,children}){
 // ══════════════════════════════════════════
 // FOOD CHECKER
 // ══════════════════════════════════════════
+function DbStats(){
+  const [stats,setStats]=useState({builtIn:0,learned:0,total:0});
+  useEffect(()=>{ setStats(getCacheStats()); },[]);
+  return(
+    <div style={{marginTop:10,display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+      <span style={{fontSize:10,color:"#527860",fontFamily:"monospace"}}>⚡ {stats.builtIn} built-in</span>
+      {stats.learned>0&&<span style={{fontSize:10,color:"#f0c040",fontFamily:"monospace"}}>+ {stats.learned} learned</span>}
+      <span style={{fontSize:10,color:"#243528",fontFamily:"monospace"}}>= {stats.total} instant foods</span>
+    </div>
+  );
+}
+
 function FoodChecker({onBack,stage,limits}){
   const [food,setFood]=useState("");
   const [loading,setLoading]=useState(false);
@@ -354,6 +366,22 @@ function FoodChecker({onBack,stage,limits}){
       // Not in local DB — call AI API
       const data=await callClaude(`You are a renal dietitian for CKD ${stage}. Daily limits: K ${limits.potassium}mg, Na ${limits.sodium}mg, P ${limits.phosphorus}mg, Pro ${limits.protein}g. Analyze: "${food}". Return ONLY valid JSON:
 {"foodName":"string","safetyLevel":"safe"|"caution"|"avoid","potassium":{"per100g":number,"risk":"low"|"medium"|"high"},"sodium":{"per100g":number,"risk":"low"|"medium"|"high"},"phosphorus":{"per100g":number,"risk":"low"|"medium"|"high"},"protein":{"per100g":number,"risk":"low"|"medium"|"high"},"ckdNote":"1-2 sentence summary for ${stage}","tip":"one practical tip","vegetarianStatus":"vegan"|"vegetarian"|"not-vegetarian"}`);
+      // Save to dynamic cache so next search is instant
+      cacheFood(food, {
+        foodName: data.foodName,
+        safetyLevel: data.safetyLevel,
+        potassium: data.potassium?.per100g||0,
+        sodium: data.sodium?.per100g||0,
+        phosphorus: data.phosphorus?.per100g||0,
+        protein: data.protein?.per100g||0,
+        potassiumRisk: data.potassium?.risk||"low",
+        sodiumRisk: data.sodium?.risk||"low",
+        phosphorusRisk: data.phosphorus?.risk||"low",
+        proteinRisk: data.protein?.risk||"low",
+        vegetarianStatus: data.vegetarianStatus||"vegan",
+        ckdNote: data.ckdNote||"",
+        tip: data.tip||"",
+      });
       setResult(data);
       setHistory(h=>[{food:data.foodName,level:data.safetyLevel},...h.slice(0,4)]);
     }catch(e){setError("Could not analyze. Please try again.");}
@@ -384,6 +412,7 @@ function FoodChecker({onBack,stage,limits}){
               <button key={f} onClick={()=>setFood(f)} style={{background:"transparent",border:"1px solid #1e3324",borderRadius:20,padding:"4px 12px",color:"#527860",fontSize:12,cursor:"pointer",fontFamily:"monospace"}}>{f}</button>
             ))}
           </div>
+          <DbStats/>
         </div>
         {loading&&<BounceDots/>}
         {error&&<div style={{background:"#2d1010",borderRadius:12,padding:16,color:"#f06060",fontSize:14,marginBottom:16}}>{error}</div>}
@@ -396,7 +425,7 @@ function FoodChecker({onBack,stage,limits}){
                   <div style={{fontSize:20,fontWeight:800,color:"#edfaf2"}}>{result.foodName}</div>
                   <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
                     <div style={{fontSize:11,color:"#527860",fontFamily:"monospace"}}>{result.vegetarianStatus==="vegan"?"🌱 Vegan":result.vegetarianStatus==="vegetarian"?"🥚 Vegetarian":"⚠ Not Vegetarian"}</div>
-                    {result.fromCache&&<div style={{fontSize:10,color:"#3ddc72",fontFamily:"monospace",background:"#0d2015",borderRadius:8,padding:"2px 8px"}}>⚡ Instant result</div>}
+                    {result.fromCache&&!result.fromDynamic&&<div style={{fontSize:10,color:"#3ddc72",fontFamily:"monospace",background:"#0d2015",borderRadius:8,padding:"2px 8px"}}>⚡ Instant · Built-in</div>}{result.fromDynamic&&<div style={{fontSize:10,color:"#f0c040",fontFamily:"monospace",background:"#1a1400",borderRadius:8,padding:"2px 8px"}}>⚡ Instant · Learned</div>}
                     {!result.fromCache&&<div style={{fontSize:10,color:"#a080f0",fontFamily:"monospace",background:"#1a0f2e",borderRadius:8,padding:"2px 8px"}}>🤖 AI analyzed</div>}
                   </div>
                 </div>
@@ -928,6 +957,216 @@ function RecipeConverter({onBack,stage,limits}){
 // RECIPE LIBRARY (condensed)
 // ══════════════════════════════════════════
 const LIB_CUISINES=["All","🇮🇳 Indian","🇮🇹 Italian","🇲🇽 Mexican","🇨🇳 Chinese","🌍 Other"];
+
+const LIB_FOLDERS = {
+  "🌅 Breakfast": {
+    emoji:"🌅", color:"#f0c040",
+    note:"Start the day right — these breakfast options are portion-controlled for CKD. Watch for hidden phosphate additives in processed items.",
+    recipes:[
+      {id:"b1",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"Poha (Flattened Rice Breakfast)",servings:2,safetyLevel:"safe",photo:null,
+        dietitianNote:"Poha is one of the best CKD breakfasts — very low in potassium, phosphorus and protein. Light and easy to digest.",
+        topTip:"Rinse poha well before cooking. Limit peanuts to 4-5 as garnish only — they are high in phosphorus.",
+        ingredients:[{name:"Flattened Rice (Poha)",amount:"1.5 cups",ckdRisk:"low"},{name:"Onion",amount:"0.5 cup",ckdRisk:"low"},{name:"Mustard seeds",amount:"0.5 tsp",ckdRisk:"low"},{name:"Turmeric",amount:"0.25 tsp",ckdRisk:"low"},{name:"Peanuts (garnish)",amount:"4-5 only",ckdRisk:"medium"}],
+        substitutions:[{original:"Large peanut portion",substitute:"4-5 peanuts only",reduction:"Reduces phosphorus significantly"}],
+        nutritionPerServing:{potassium:150,sodium:100,phosphorus:75,protein:3},
+        nutritionAfterSwaps:{potassium:150,sodium:100,phosphorus:65,protein:3}},
+      {id:"b2",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"Upma (Semolina Porridge)",servings:3,safetyLevel:"safe",photo:null,
+        dietitianNote:"Upma with kidney-safe vegetables is an excellent CKD breakfast — filling, low in potassium and phosphorus.",
+        topTip:"Add only cabbage, carrots (small portion) or bottle gourd. Avoid tomatoes and potatoes entirely.",
+        ingredients:[{name:"Semolina (Rava)",amount:"1 cup",ckdRisk:"low"},{name:"Cabbage",amount:"0.5 cup",ckdRisk:"low"},{name:"Onion",amount:"0.5 cup",ckdRisk:"low"},{name:"Ghee",amount:"1 tsp",ckdRisk:"low"},{name:"Mustard seeds",amount:"0.5 tsp",ckdRisk:"low"}],
+        substitutions:[{original:"Tomatoes or potatoes",substitute:"Skip entirely — use cabbage",reduction:"Eliminates high-potassium ingredients"}],
+        nutritionPerServing:{potassium:185,sodium:125,phosphorus:90,protein:4},
+        nutritionAfterSwaps:{potassium:185,sodium:125,phosphorus:90,protein:4}},
+      {id:"b3",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"Plain White Toast with Butter",servings:1,safetyLevel:"safe",photo:null,
+        dietitianNote:"Plain white toast with unsalted butter is a simple, kidney-safe breakfast. White bread is much safer than whole wheat for CKD.",
+        topTip:"Always use white bread, not whole wheat. Use unsalted butter. Avoid peanut butter which is high in phosphorus and potassium.",
+        ingredients:[{name:"White bread",amount:"2 slices",ckdRisk:"low"},{name:"Unsalted butter",amount:"1 tsp",ckdRisk:"low"}],
+        substitutions:[{original:"Whole wheat bread",substitute:"White bread only",reduction:"Reduces phosphorus by ~35%"},{original:"Peanut butter",substitute:"Unsalted butter or jam (small amount)",reduction:"Reduces phosphorus and potassium significantly"}],
+        nutritionPerServing:{potassium:110,sodium:380,phosphorus:100,protein:6},
+        nutritionAfterSwaps:{potassium:110,sodium:380,phosphorus:100,protein:6}},
+      {id:"b4",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"White Bread with Jam (Small Portion)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"White bread with a thin spread of jam is acceptable occasionally. Jam adds sugar but minimal potassium in small amounts.",
+        topTip:"Use only 1 teaspoon of jam — avoid large portions. Choose strawberry or apple jam over grape or orange which have more potassium.",
+        ingredients:[{name:"White bread",amount:"1-2 slices",ckdRisk:"low"},{name:"Fruit jam",amount:"1 tsp only",ckdRisk:"low"}],
+        substitutions:[{original:"Marmalade or orange jam",substitute:"Strawberry or apple jam",reduction:"Reduces potassium slightly"}],
+        nutritionPerServing:{potassium:120,sodium:340,phosphorus:95,protein:5},
+        nutritionAfterSwaps:{potassium:110,sodium:340,phosphorus:95,protein:5}},
+      {id:"b5",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"Idli (Steamed Rice Cakes)",servings:2,safetyLevel:"safe",photo:null,
+        dietitianNote:"Idli is a safe CKD breakfast — steamed, light, and low in potassium.",
+        topTip:"Limit to 2-3 idlis per serving. Pair with modified sambar using bottle gourd instead of drumstick.",
+        ingredients:[{name:"Idli",amount:"2-3 pieces",ckdRisk:"low"}],
+        substitutions:[],
+        nutritionPerServing:{potassium:75,sodium:195,phosphorus:55,protein:2.5},
+        nutritionAfterSwaps:{potassium:75,sodium:195,phosphorus:55,protein:2.5}},
+      {id:"b6",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"Egg on White Toast (1 Egg)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"One egg on white toast provides protein and energy. Keep to one egg maximum — eggs have moderate phosphorus.",
+        topTip:"Use one egg only. Scrambled or poached is fine. Use white toast not whole wheat. Avoid adding cheese.",
+        ingredients:[{name:"Egg",amount:"1 whole",ckdRisk:"medium"},{name:"White bread",amount:"1 slice",ckdRisk:"low"},{name:"Unsalted butter",amount:"0.5 tsp",ckdRisk:"low"}],
+        substitutions:[{original:"2 whole eggs",substitute:"1 whole egg or 2 egg whites",reduction:"Reduces phosphorus by ~40%"}],
+        nutritionPerServing:{potassium:200,sodium:350,phosphorus:230,protein:11},
+        nutritionAfterSwaps:{potassium:200,sodium:350,phosphorus:230,protein:11}},
+      {id:"b7",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"Oatmeal (White Oats, Small Portion)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Oatmeal has moderate phosphorus. A small portion (1/4 cup dry oats) cooked in water is manageable for most CKD stages.",
+        topTip:"Use only 1/4 cup dry oats maximum. Cook in water not milk. Top with apple slices or blueberries — avoid banana.",
+        ingredients:[{name:"White rolled oats",amount:"0.25 cup dry",ckdRisk:"medium"},{name:"Water",amount:"as needed",ckdRisk:"low"},{name:"Apple or blueberries",amount:"small amount",ckdRisk:"low"}],
+        substitutions:[{original:"Large oat portion",substitute:"0.25 cup dry oats maximum",reduction:"Reduces phosphorus and potassium by 50%"},{original:"Milk base",substitute:"Water base",reduction:"Reduces phosphorus significantly"}],
+        nutritionPerServing:{potassium:135,sodium:5,phosphorus:120,protein:4},
+        nutritionAfterSwaps:{potassium:135,sodium:5,phosphorus:120,protein:4}},
+      {id:"b8",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"Tea or Coffee (Plain)",servings:1,safetyLevel:"safe",photo:null,
+        dietitianNote:"Plain tea or coffee with a small amount of milk is acceptable for CKD. Avoid large amounts of milk which adds phosphorus.",
+        topTip:"Limit to 1-2 cups per day. Use only 2-3 tbsp of milk. Avoid adding cream, condensed milk or large amounts of regular milk.",
+        ingredients:[{name:"Tea or coffee",amount:"1 cup",ckdRisk:"low"},{name:"Milk",amount:"2-3 tbsp only",ckdRisk:"low"}],
+        substitutions:[{original:"Large milk portion",substitute:"2-3 tbsp milk only",reduction:"Reduces phosphorus contribution"}],
+        nutritionPerServing:{potassium:45,sodium:10,phosphorus:25,protein:0.8},
+        nutritionAfterSwaps:{potassium:45,sodium:10,phosphorus:25,protein:0.8}},
+      {id:"b9",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"⚠️ Croissant / Muffin (Occasional Only)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Croissants and muffins are high in sodium and often contain phosphate additives. Acceptable very occasionally as a treat but not as a regular breakfast.",
+        topTip:"Check the label for 'phosphate' additives — these are more harmful than natural phosphorus. Limit to once a week maximum and choose plain versions without chocolate chips or fruit fillings.",
+        ingredients:[{name:"Plain croissant or muffin",amount:"1 small",ckdRisk:"medium"}],
+        substitutions:[{original:"Chocolate chip or fruit muffin",substitute:"Plain croissant or plain muffin",reduction:"Reduces potassium and phosphorus"}],
+        nutritionPerServing:{potassium:145,sodium:420,phosphorus:160,protein:6},
+        nutritionAfterSwaps:{potassium:145,sodium:420,phosphorus:160,protein:6}},
+      {id:"b10",savedAt:"Default",cuisine:"🌅 Breakfast",dishName:"⚠️ Bagel with Cream Cheese (Portion Controlled)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"A mini bagel with a thin spread of cream cheese is manageable occasionally. Full-size bagels with heavy toppings are not recommended for CKD.",
+        topTip:"Use a mini bagel (not full size). Use only 1 tbsp cream cheese. Avoid smoked salmon, lox, or nut butter toppings.",
+        ingredients:[{name:"Mini white bagel",amount:"1 small (45g)",ckdRisk:"low"},{name:"Cream cheese",amount:"1 tbsp only",ckdRisk:"medium"}],
+        substitutions:[{original:"Full-size bagel",substitute:"Mini bagel only",reduction:"Reduces sodium and phosphorus by half"},{original:"Heavy cream cheese spread",substitute:"1 tbsp thin spread",reduction:"Reduces phosphorus and sodium"}],
+        nutritionPerServing:{potassium:115,sodium:490,phosphorus:145,protein:7},
+        nutritionAfterSwaps:{potassium:115,sodium:490,phosphorus:145,protein:7}},
+    ]
+  },
+  "🍎 Snacks": {
+    emoji:"🍎", color:"#3ddc72",
+    note:"Smart snacking for CKD — focus on safe fruits, portion-controlled options. Treats like chocolate and ice cream are very occasional only.",
+    recipes:[
+      {id:"s1",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"Safe Fruit Snack (Apple, Grapes, Berries)",servings:1,safetyLevel:"safe",photo:null,
+        dietitianNote:"These fruits are among the safest for CKD — low in potassium and phosphorus. A great between-meal snack.",
+        topTip:"Best choices: apple (1 medium), grapes (15-20), blueberries (1/2 cup), strawberries (1/2 cup), pineapple (1/2 cup). Avoid banana, orange, and mango in large amounts.",
+        ingredients:[{name:"Apple OR grapes OR blueberries",amount:"1 medium apple or 1/2 cup berries",ckdRisk:"low"}],
+        substitutions:[{original:"Banana",substitute:"Apple or grapes",reduction:"Reduces potassium from 358mg to under 110mg per 100g"},{original:"Orange",substitute:"Apple or strawberries",reduction:"Reduces potassium significantly"}],
+        nutritionPerServing:{potassium:107,sodium:1,phosphorus:11,protein:0.3},
+        nutritionAfterSwaps:{potassium:107,sodium:1,phosphorus:11,protein:0.3}},
+      {id:"s2",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"Portion-Controlled Mixed Nuts (1/4 cup)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Nuts in small controlled portions (1/4 cup) are acceptable occasionally for CKD. They are high in phosphorus and potassium so portion control is essential.",
+        topTip:"Stick strictly to 1/4 cup (about 30g) maximum. Macadamia nuts and pecans are the lowest in potassium among nuts. Avoid cashews, almonds and peanuts in large amounts.",
+        ingredients:[{name:"Mixed nuts (unsalted)",amount:"1/4 cup = 30g MAX",ckdRisk:"medium"}],
+        substitutions:[{original:"Salted nuts",substitute:"Unsalted only",reduction:"Reduces sodium significantly"},{original:"Cashews or almonds (large portion)",substitute:"Macadamia or pecan (1/4 cup)",reduction:"Reduces potassium and phosphorus"}],
+        nutritionPerServing:{potassium:195,sodium:5,phosphorus:170,protein:5},
+        nutritionAfterSwaps:{potassium:150,sodium:5,phosphorus:130,protein:4}},
+      {id:"s3",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"Saltine Crackers (Plain)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Plain saltine crackers are acceptable for CKD in controlled portions. Main concern is sodium content.",
+        topTip:"Limit to 5-6 crackers per serving. Choose low-sodium saltines if available. Pair with a thin spread of unsalted butter, not cheese or peanut butter.",
+        ingredients:[{name:"Plain saltine crackers",amount:"5-6 crackers",ckdRisk:"low"},{name:"Unsalted butter (optional)",amount:"0.5 tsp",ckdRisk:"low"}],
+        substitutions:[{original:"Regular saltines (many)",substitute:"5-6 crackers only",reduction:"Keeps sodium within limits"},{original:"Cheese topping",substitute:"Thin unsalted butter",reduction:"Reduces phosphorus significantly"}],
+        nutritionPerServing:{potassium:35,sodium:310,phosphorus:35,protein:1.5},
+        nutritionAfterSwaps:{potassium:35,sodium:310,phosphorus:35,protein:1.5}},
+      {id:"s4",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"⚠️ Chocolate (Very Occasional — 1 Square)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Dark chocolate is high in potassium and phosphorus. Milk chocolate is slightly better but still a concern. One small square (about 10g) occasionally is the maximum for CKD.",
+        topTip:"Limit to 1 square (10g) of white or milk chocolate — white has the least potassium. Avoid dark chocolate entirely. No more than once or twice per week maximum.",
+        ingredients:[{name:"White or milk chocolate",amount:"1 small square = 10g ONLY",ckdRisk:"medium"}],
+        substitutions:[{original:"Dark chocolate",substitute:"White chocolate (1 square only)",reduction:"Reduces potassium and phosphorus"},{original:"Large chocolate portion",substitute:"1 square (10g) maximum",reduction:"Critical portion control for CKD"}],
+        nutritionPerServing:{potassium:55,sodium:28,phosphorus:55,protein:1.5},
+        nutritionAfterSwaps:{potassium:55,sodium:28,phosphorus:55,protein:1.5}},
+      {id:"s5",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"⚠️ Ice Cream (Very Occasional — Small Scoop)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Ice cream is moderate in phosphorus and potassium. A small single scoop (1/2 cup) occasionally is acceptable for most CKD stages — but check for phosphate additives.",
+        topTip:"Choose vanilla or strawberry ice cream — they have less potassium than chocolate. One small scoop (1/2 cup = 65g) maximum. Check the label for 'phosphate' in the ingredients list and avoid those brands.",
+        ingredients:[{name:"Vanilla ice cream",amount:"1 small scoop = 65g",ckdRisk:"medium"}],
+        substitutions:[{original:"Chocolate ice cream",substitute:"Vanilla ice cream (1 small scoop)",reduction:"Reduces potassium and phosphorus"},{original:"Large portion",substitute:"Single small scoop only",reduction:"Keeps nutrient intake controlled"}],
+        nutritionPerServing:{potassium:130,sodium:55,phosphorus:100,protein:2.5},
+        nutritionAfterSwaps:{potassium:130,sodium:55,phosphorus:100,protein:2.5}},
+      {id:"s6",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"⚠️ Cake Slice (Very Occasional — Plain Only)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"A small slice of plain white or vanilla cake is acceptable very occasionally. Avoid chocolate, carrot, or banana cake. Icing adds sodium and phosphorus.",
+        topTip:"Choose plain white or vanilla sponge cake only. A slice 1 inch thick is the maximum. Avoid chocolate cake (high potassium), carrot cake (high potassium), and heavily iced cakes.",
+        ingredients:[{name:"Plain white sponge cake",amount:"1 thin slice (50g)",ckdRisk:"medium"}],
+        substitutions:[{original:"Chocolate cake",substitute:"Plain vanilla sponge only",reduction:"Reduces potassium by ~60%"},{original:"Heavy icing",substitute:"No icing or minimal plain icing",reduction:"Reduces sodium and phosphorus"}],
+        nutritionPerServing:{potassium:70,sodium:180,phosphorus:120,protein:3},
+        nutritionAfterSwaps:{potassium:70,sodium:180,phosphorus:120,protein:3}},
+      {id:"s7",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"Indian Snack: Makhana (Fox Nuts)",servings:1,safetyLevel:"safe",photo:null,
+        dietitianNote:"Makhana (fox nuts) are one of the best Indian snacks for CKD — low in potassium and phosphorus, light and crunchy.",
+        topTip:"Roast with a little ghee and light spices (turmeric, cumin). Avoid adding salt. A half cup is a good portion. One of the few Indian snacks that is genuinely safe for CKD.",
+        ingredients:[{name:"Makhana (fox nuts)",amount:"0.5 cup (15g)",ckdRisk:"low"},{name:"Ghee",amount:"0.5 tsp",ckdRisk:"low"},{name:"Turmeric, cumin",amount:"pinch",ckdRisk:"low"}],
+        substitutions:[],
+        nutritionPerServing:{potassium:50,sodium:5,phosphorus:50,protein:1.5},
+        nutritionAfterSwaps:{potassium:50,sodium:5,phosphorus:50,protein:1.5}},
+      {id:"s8",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"Indian Snack: Murmura (Puffed Rice)",servings:1,safetyLevel:"safe",photo:null,
+        dietitianNote:"Puffed rice (murmura) is a light, kidney-friendly Indian snack — very low in all four key nutrients.",
+        topTip:"Eat plain or lightly spiced. Avoid adding sev, bhujia or fried mixtures which are high in sodium and phosphorus. A cup of plain murmura is a safe portion.",
+        ingredients:[{name:"Puffed rice (Murmura)",amount:"1 cup",ckdRisk:"low"},{name:"Lemon juice",amount:"few drops",ckdRisk:"low"},{name:"Coriander, cumin",amount:"pinch",ckdRisk:"low"}],
+        substitutions:[{original:"Bhel puri mix (with sev, bhujia)",substitute:"Plain murmura only",reduction:"Reduces sodium and phosphorus significantly"}],
+        nutritionPerServing:{potassium:35,sodium:5,phosphorus:25,protein:1},
+        nutritionAfterSwaps:{potassium:35,sodium:5,phosphorus:25,protein:1}},
+      {id:"s9",savedAt:"Default",cuisine:"🍎 Snacks",dishName:"⚠️ Indian Snack: Plain Khakhra (1-2 only)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Plain wheat khakhra is acceptable in small amounts. Avoid masala, methi, or garlic varieties which can have more sodium and potassium.",
+        topTip:"Limit to 1-2 plain khakhras. Choose plain or jeera flavour. Avoid methi khakhra (fenugreek is high in potassium). No dips or chutneys.",
+        ingredients:[{name:"Plain khakhra",amount:"1-2 pieces",ckdRisk:"low"}],
+        substitutions:[{original:"Methi or masala khakhra",substitute:"Plain or jeera khakhra",reduction:"Reduces potassium from fenugreek"}],
+        nutritionPerServing:{potassium:110,sodium:170,phosphorus:90,protein:3},
+        nutritionAfterSwaps:{potassium:90,sodium:150,phosphorus:80,protein:3}},
+    ]
+  },
+  "🥗 Lunch": {
+    emoji:"🥗", color:"#40c8f0",
+    note:"CKD-friendly lunch options — focus on portion control and kidney-safe ingredients. Recipes adapted for lower potassium, sodium and phosphorus.",
+    recipes:[
+      {id:"l1",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"Khichdi (Rice + Moong Dal)",servings:4,safetyLevel:"safe",photo:null,
+        dietitianNote:"Khichdi is the gold standard CKD lunch — easy to digest, low in all key nutrients, and filling. The 3:1 rice-to-dal ratio keeps protein and phosphorus in check.",
+        topTip:"Use 3:1 rice-to-dal ratio. Rinse both thoroughly. Cook with turmeric, cumin and ghee. Minimum salt. Can be made in a pressure cooker in minutes.",
+        ingredients:[{name:"White Basmati Rice",amount:"1.5 cups",ckdRisk:"low"},{name:"Moong Dal",amount:"0.5 cup",ckdRisk:"low"},{name:"Ghee",amount:"1 tbsp",ckdRisk:"low"},{name:"Turmeric",amount:"0.5 tsp",ckdRisk:"low"},{name:"Cumin seeds",amount:"1 tsp",ckdRisk:"low"}],
+        substitutions:[],
+        nutritionPerServing:{potassium:195,sodium:115,phosphorus:110,protein:6},
+        nutritionAfterSwaps:{potassium:195,sodium:115,phosphorus:110,protein:6}},
+      {id:"l2",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"CKD Pulav (No Potato, No Tomato)",servings:4,safetyLevel:"safe",photo:null,
+        dietitianNote:"Kidney-safe pulav with cabbage, cauliflower florets, mint and aromatic spices. Skips potato and tomato entirely.",
+        topTip:"Rinse basmati 2-3 times. Use cauliflower instead of potato. Mint adds aroma without kidney risk. Small carrot portion (2-3 thin slices) only.",
+        ingredients:[{name:"Basmati White Rice",amount:"1.5 cups",ckdRisk:"low"},{name:"Cabbage",amount:"0.75 cup",ckdRisk:"low"},{name:"Cauliflower florets",amount:"0.5 cup",ckdRisk:"low"},{name:"Carrot (tiny)",amount:"0.25 cup",ckdRisk:"low"},{name:"Onion",amount:"1 medium",ckdRisk:"low"},{name:"Fresh mint",amount:"2 tbsp",ckdRisk:"low"},{name:"Jeera, turmeric, coriander",amount:"1 tsp each",ckdRisk:"low"}],
+        substitutions:[{original:"Potatoes",substitute:"Cauliflower florets",reduction:"Eliminates high-potassium ingredient"},{original:"Tomatoes",substitute:"Mint + spices for depth",reduction:"Removes potassium and acidity risk"}],
+        nutritionPerServing:{potassium:185,sodium:90,phosphorus:95,protein:5},
+        nutritionAfterSwaps:{potassium:185,sodium:90,phosphorus:95,protein:5}},
+      {id:"l3",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"CKD Pasta Aglio e Olio",servings:4,safetyLevel:"safe",photo:null,
+        dietitianNote:"Simple white pasta with garlic and olive oil — one of the most kidney-safe Italian lunches. No tomato sauce means low potassium.",
+        topTip:"Use white pasta, not whole wheat. Cook in unsalted water. Season with fresh parsley and chilli flakes for flavour without sodium.",
+        ingredients:[{name:"White Pasta",amount:"200g",ckdRisk:"low"},{name:"Olive Oil",amount:"3 tbsp",ckdRisk:"low"},{name:"Garlic",amount:"3 cloves",ckdRisk:"low"},{name:"Fresh Parsley",amount:"2 tbsp",ckdRisk:"low"},{name:"Chilli flakes",amount:"pinch",ckdRisk:"low"}],
+        substitutions:[{original:"Whole wheat pasta",substitute:"White pasta only",reduction:"Reduces phosphorus by ~35%"},{original:"Tomato sauce",substitute:"Olive oil and garlic only",reduction:"Reduces potassium significantly"}],
+        nutritionPerServing:{potassium:130,sodium:85,phosphorus:90,protein:7},
+        nutritionAfterSwaps:{potassium:130,sodium:85,phosphorus:90,protein:7}},
+      {id:"l4",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"CKD Pasta Primavera (Modified)",servings:4,safetyLevel:"safe",photo:null,
+        dietitianNote:"White pasta with kidney-safe vegetables — zucchini, bell pepper and olive oil make this a safe and flavourful CKD lunch.",
+        topTip:"Use zucchini, bell pepper and cabbage only — skip spinach, tomatoes and broccoli. A light drizzle of olive oil and garlic with a tiny sprinkle of parmesan is ideal.",
+        ingredients:[{name:"White Pasta",amount:"200g",ckdRisk:"low"},{name:"Zucchini",amount:"1 cup",ckdRisk:"low"},{name:"Bell pepper",amount:"0.5 cup",ckdRisk:"low"},{name:"Olive oil",amount:"2 tbsp",ckdRisk:"low"},{name:"Garlic",amount:"2 cloves",ckdRisk:"low"},{name:"Parmesan (garnish)",amount:"1 tbsp only",ckdRisk:"medium"}],
+        substitutions:[{original:"Spinach or broccoli",substitute:"Zucchini and bell pepper",reduction:"Reduces potassium significantly"},{original:"Tomato based sauce",substitute:"Olive oil and garlic",reduction:"Reduces potassium by ~60%"},{original:"Large parmesan",substitute:"1 tbsp garnish only",reduction:"Reduces phosphorus and sodium"}],
+        nutritionPerServing:{potassium:175,sodium:110,phosphorus:100,protein:8},
+        nutritionAfterSwaps:{potassium:175,sodium:110,phosphorus:100,protein:8}},
+      {id:"l5",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"⚠️ Pizza — 1 to 2 Slices (CKD Modified)",servings:1,safetyLevel:"caution",photo:null,
+        dietitianNote:"Pizza can fit into a CKD diet with careful choices — thin crust, minimal sauce, small amount of mozzarella, and kidney-safe toppings. Strictly 1-2 slices only.",
+        topTip:"Choose thin crust. Use max 2 tbsp tomato sauce total on the whole pizza. Use only 30g mozzarella per slice. Top with bell pepper and zucchini, NOT mushrooms, olives or spinach. 1-2 slices ONLY per meal.",
+        ingredients:[{name:"Thin pizza crust (white flour)",amount:"1-2 slices worth",ckdRisk:"low"},{name:"Tomato sauce (thin spread)",amount:"2 tbsp total",ckdRisk:"medium"},{name:"Mozzarella (small)",amount:"30g per slice",ckdRisk:"medium"},{name:"Bell pepper topping",amount:"few slices",ckdRisk:"low"},{name:"Zucchini topping",amount:"few slices",ckdRisk:"low"}],
+        substitutions:[{original:"Thick crust",substitute:"Thin crust only",reduction:"Reduces sodium from dough"},{original:"Heavy tomato sauce",substitute:"Thin 2 tbsp spread",reduction:"Reduces potassium by ~40%"},{original:"Extra mozzarella",substitute:"30g only per slice",reduction:"Reduces phosphorus and sodium by ~50%"},{original:"Mushroom or olive toppings",substitute:"Bell pepper and zucchini",reduction:"Reduces potassium"}],
+        nutritionPerServing:{potassium:240,sodium:580,phosphorus:220,protein:12},
+        nutritionAfterSwaps:{potassium:190,sodium:420,phosphorus:160,protein:9}},
+      {id:"l6",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"Cauliflower Tacos (2-3 Tacos)",servings:3,safetyLevel:"safe",photo:null,
+        dietitianNote:"Cauliflower tacos are an excellent CKD-safe Mexican lunch — all the flavour of tacos with none of the high-potassium beans.",
+        topTip:"Roast cauliflower with cumin and paprika. Use corn tortillas. Top with shredded cabbage and a squeeze of lime. Skip salsa, guacamole and sour cream.",
+        ingredients:[{name:"Cauliflower",amount:"2 cups",ckdRisk:"low"},{name:"Corn tortillas",amount:"6 small",ckdRisk:"low"},{name:"Cabbage shredded",amount:"0.5 cup",ckdRisk:"low"},{name:"Lime juice",amount:"1 tbsp",ckdRisk:"low"},{name:"Cumin, paprika",amount:"1 tsp each",ckdRisk:"low"}],
+        substitutions:[{original:"Black beans or refried beans",substitute:"Cauliflower only",reduction:"Reduces potassium from 600mg to under 300mg"},{original:"Guacamole",substitute:"Skip entirely",reduction:"Eliminates high-potassium avocado"},{original:"Salsa",substitute:"Squeeze of lime only",reduction:"Reduces sodium and potassium"}],
+        nutritionPerServing:{potassium:200,sodium:90,phosphorus:80,protein:4},
+        nutritionAfterSwaps:{potassium:200,sodium:90,phosphorus:80,protein:4}},
+      {id:"l7",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"Veggie Quesadilla with Bell Pepper",servings:2,safetyLevel:"safe",photo:null,
+        dietitianNote:"A simple quesadilla with bell peppers and small amount of mozzarella is a safe, satisfying CKD lunch.",
+        topTip:"Fill with bell peppers and zucchini. Use white flour tortilla. Keep mozzarella to 30g only. Skip sour cream, guacamole and salsa.",
+        ingredients:[{name:"White flour tortilla",amount:"2 large",ckdRisk:"low"},{name:"Mozzarella",amount:"30g",ckdRisk:"medium"},{name:"Bell pepper",amount:"0.5 cup",ckdRisk:"low"},{name:"Zucchini",amount:"0.5 cup",ckdRisk:"low"},{name:"Oil",amount:"1 tsp",ckdRisk:"low"}],
+        substitutions:[{original:"Black beans",substitute:"Skip entirely",reduction:"Eliminates high-potassium ingredients"},{original:"Extra cheese",substitute:"30g mozzarella only",reduction:"Reduces phosphorus and sodium"}],
+        nutritionPerServing:{potassium:220,sodium:260,phosphorus:140,protein:9},
+        nutritionAfterSwaps:{potassium:220,sodium:260,phosphorus:140,protein:9}},
+      {id:"l8",savedAt:"Default",cuisine:"🥗 Lunch",dishName:"Steamed Rice with Bok Choy Stir Fry",servings:4,safetyLevel:"safe",photo:null,
+        dietitianNote:"One of the safest CKD lunches — plain white rice paired with lightly cooked bok choy. Low in all four nutrients of concern.",
+        topTip:"Blanch bok choy briefly and discard water to further reduce potassium. Use max 1 tsp low-sodium soy sauce. Season with garlic and a few drops of sesame oil.",
+        ingredients:[{name:"White Rice",amount:"1.5 cups",ckdRisk:"low"},{name:"Bok Choy",amount:"2 cups",ckdRisk:"low"},{name:"Garlic",amount:"1 clove",ckdRisk:"low"},{name:"Low-sodium soy sauce",amount:"1 tsp",ckdRisk:"medium"},{name:"Sesame oil",amount:"0.5 tsp",ckdRisk:"low"}],
+        substitutions:[{original:"Regular soy sauce",substitute:"Low-sodium soy sauce (1 tsp max)",reduction:"Reduces sodium by ~50%"}],
+        nutritionPerServing:{potassium:165,sodium:110,phosphorus:82,protein:5},
+        nutritionAfterSwaps:{potassium:165,sodium:110,phosphorus:82,protein:5}},
+    ]
+  },
+};
 const LIB_SAFETY={safe:{color:"#3ddc72",bg:"#0d2d1a",label:"✓ Safe"},caution:{color:"#f0b429",bg:"#2d2010",label:"⚠ Caution"},avoid:{color:"#f06060",bg:"#2d1010",label:"✗ Avoid"}};
 const LIB_DEFAULT=[
   {id:1,savedAt:"Default",cuisine:"🇮🇳 Indian",dishName:"Khichdi",servings:4,safetyLevel:"safe",photo:null,dietitianNote:"Khichdi is one of the best CKD-friendly Indian meals — low potassium and moderate protein.",topTip:"Use a 3:1 rice-to-dal ratio and rinse both thoroughly to reduce phosphorus.",ingredients:[{name:"White Rice",amount:"1.5 cups",ckdRisk:"low"},{name:"Moong Dal",amount:"0.5 cup",ckdRisk:"low"},{name:"Ghee",amount:"1 tbsp",ckdRisk:"low"},{name:"Turmeric",amount:"0.5 tsp",ckdRisk:"low"}],substitutions:[],nutritionPerServing:{potassium:180,sodium:120,phosphorus:110,protein:7},nutritionAfterSwaps:{potassium:180,sodium:120,phosphorus:110,protein:7}},
@@ -944,6 +1183,66 @@ const LIB_DEFAULT=[
   {id:12,savedAt:"Default",cuisine:"🌍 Other",dishName:"Greek Salad (Modified)",servings:2,safetyLevel:"caution",photo:null,dietitianNote:"Rinse olives, use minimal feta, replace large tomatoes with 3 cherry tomatoes.",topTip:"Limit feta to 15g. Rinse olives to remove sodium.",ingredients:[{name:"Cucumber",amount:"1 cup",ckdRisk:"low"},{name:"Lettuce",amount:"1 cup",ckdRisk:"low"},{name:"Feta",amount:"15g",ckdRisk:"medium"},{name:"Olives (rinsed)",amount:"4 pieces",ckdRisk:"medium"}],substitutions:[{original:"Large tomatoes",substitute:"3 cherry tomatoes",reduction:"Reduces potassium by ~60%"}],nutritionPerServing:{potassium:180,sodium:220,phosphorus:85,protein:4},nutritionAfterSwaps:{potassium:180,sodium:220,phosphorus:85,protein:4}},
   {id:13,savedAt:"Default",cuisine:"🌍 Other",dishName:"Veggie Sushi Rolls",servings:3,safetyLevel:"safe",photo:null,dietitianNote:"Vegetarian sushi is kidney-friendly. Limit avocado and always use low-sodium soy sauce.",topTip:"Use low-sodium soy sauce, max 1 tsp. Avoid cream cheese rolls.",ingredients:[{name:"Sushi Rice",amount:"1.5 cups",ckdRisk:"low"},{name:"Nori sheets",amount:"4",ckdRisk:"low"},{name:"Cucumber",amount:"0.5 cup",ckdRisk:"low"},{name:"Avocado",amount:"0.25 small",ckdRisk:"medium"}],substitutions:[{original:"Regular soy sauce",substitute:"Low-sodium (1 tsp only)",reduction:"Reduces sodium by ~50%"}],nutritionPerServing:{potassium:180,sodium:120,phosphorus:80,protein:4},nutritionAfterSwaps:{potassium:180,sodium:120,phosphorus:80,protein:4}},
 ];
+
+function RecipeDetail({recipe, onBack, onDelete, showDelete=true}){
+  const r = recipe;
+  const sm = LIB_SAFETY[r.safetyLevel];
+  return(
+    <div>
+      {r.photo&&<div style={{borderRadius:14,overflow:"hidden",marginBottom:14,maxHeight:200}}><img src={r.photo} alt={r.dishName} style={{width:"100%",height:200,objectFit:"cover"}}/></div>}
+      <div style={{background:"#162019",border:`1px solid ${sm?.color||"#3ddc72"}44`,borderRadius:14,padding:18,marginBottom:12}}>
+        <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:10}}>
+          <div>
+            <div style={{fontSize:20,fontWeight:800,color:"#edfaf2"}}>{r.dishName}</div>
+            <div style={{fontSize:11,color:"#527860",fontFamily:"monospace"}}>{r.cuisine} · Serves {r.servings} · {r.savedAt}</div>
+          </div>
+          <span style={{fontSize:11,color:sm?.color,background:sm?.bg,border:`1px solid ${sm?.color}44`,borderRadius:10,padding:"4px 12px",fontFamily:"monospace",fontWeight:700}}>{sm?.label}</span>
+        </div>
+        <p style={{margin:"0 0 14px",fontSize:13,color:"#cce8d4",lineHeight:1.7,background:"#0d1a10",borderRadius:10,padding:12}}>{r.dietitianNote}</p>
+        {NUTRIENTS.map(n=>{
+          const v=r.nutritionAfterSwaps?.[n]||r.nutritionPerServing?.[n]||0;
+          const maxV=n==="protein"?17:n==="phosphorus"?267:n==="sodium"?500:667;
+          const pct=Math.min((v/maxV)*100,100); const col=v>maxV?"#f06060":pct>75?"#f0b429":"#3ddc72";
+          return<div key={n} style={{marginBottom:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+              <span style={{fontSize:11,color:"#527860",fontFamily:"monospace",textTransform:"uppercase"}}>{N_LABELS[n]}</span>
+              <span style={{fontSize:12,color:col,fontFamily:"monospace",fontWeight:700}}>{Math.round(v)}{N_UNITS[n]}</span>
+            </div>
+            <div style={{background:"#0d1a10",borderRadius:6,height:6,overflow:"hidden"}}><div style={{width:`${pct}%`,height:"100%",background:col,borderRadius:6}}/></div>
+          </div>;
+        })}
+      </div>
+      {r.ingredients?.length>0&&(
+        <div style={{background:"#162019",border:"1px solid #243528",borderRadius:14,padding:16,marginBottom:12}}>
+          <div style={{fontSize:11,color:"#527860",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>Ingredients</div>
+          {r.ingredients.map((ing,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:i<r.ingredients.length-1?"1px solid #243528":"none"}}>
+              <span style={{fontSize:14,color:"#cce8d4"}}>{ing.amount} {ing.name}</span>
+              <div style={{width:8,height:8,borderRadius:"50%",background:getRiskColor(ing.ckdRisk)}}/>
+            </div>
+          ))}
+        </div>
+      )}
+      {r.substitutions?.length>0&&(
+        <div style={{background:"#162019",border:"1px solid #243528",borderRadius:14,padding:16,marginBottom:12}}>
+          <div style={{fontSize:11,color:"#527860",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:12}}>CKD-Safe Swaps</div>
+          {r.substitutions.map((sub,i)=>(
+            <div key={i} style={{background:"#0d1a10",borderRadius:10,padding:12,marginBottom:8}}>
+              <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
+                <span style={{color:"#f06060",fontFamily:"monospace",fontSize:13,textDecoration:"line-through"}}>{sub.original}</span>
+                <span style={{color:"#527860"}}>→</span>
+                <span style={{color:"#3ddc72",fontFamily:"monospace",fontSize:13,fontWeight:600}}>{sub.substitute}</span>
+              </div>
+              <div style={{fontSize:11,color:"#f0b429",fontFamily:"monospace"}}>💜 {sub.reduction}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {r.topTip&&<div style={{background:"#0d1a10",border:"1px solid #1a6e38",borderRadius:12,padding:14,marginBottom:14,display:"flex",gap:10}}><span>💡</span><p style={{margin:0,fontSize:13,color:"#cce8d4",lineHeight:1.6}}>{r.topTip}</p></div>}
+      {showDelete&&<button onClick={onDelete} style={{width:"100%",background:"transparent",border:"1px solid #f0606055",borderRadius:12,padding:12,color:"#f06060",fontSize:14,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>🗑 Delete from Library</button>}
+    </div>
+  );
+}
 
 function RecipeLibrary({onBack}){
   const [recipes,setRecipes]=useState(()=>LS.get("ckd_library",LIB_DEFAULT));
@@ -992,10 +1291,57 @@ function RecipeLibrary({onBack}){
     return r.dishName?.toLowerCase().includes(search.toLowerCase())&&(cuisineF==="All"||r.cuisine===cuisineF)&&(safetyF==="All"||r.safetyLevel===safetyF);
   });
 
+  const [folderView, setFolderView] = useState(null); // null = main library, else folder key
+  const [libTab, setLibTab] = useState("folders"); // "folders" | "my"
+
+  // Folder detail view
+  if(folderView){
+    const folder = LIB_FOLDERS[folderView];
+    const selRec = selected;
+    if(selRec && selRec.cuisine === folderView) {
+      // show detail inline handled below
+    }
+    return(
+      <div style={{minHeight:"100vh",background:"#0a0f0d",color:"#cce8d4",fontFamily:"'Outfit',sans-serif",paddingBottom:60}}>
+        <TopBar onBack={()=>{setFolderView(null);setSelected(null);}} title={folderView}/>
+        <div style={{maxWidth:680,margin:"0 auto",padding:"16px"}}>
+          <div style={{background:"#112115",border:`1px solid ${folder.color}44`,borderRadius:14,padding:14,marginBottom:16,fontSize:13,color:"#c8e8d0",lineHeight:1.7}}>
+            ℹ️ {folder.note}
+          </div>
+          {selected ? (
+            <RecipeDetail recipe={selected} onBack={()=>setSelected(null)} onDelete={()=>{setSelected(null);}} showDelete={false}/>
+          ) : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
+              {folder.recipes.map(r=>{
+                const sm=LIB_SAFETY[r.safetyLevel];
+                return(
+                  <div key={r.id} onClick={()=>setSelected(r)}
+                    style={{background:"#162019",border:"1px solid #243528",borderRadius:14,overflow:"hidden",cursor:"pointer"}}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor=folder.color+"66"}
+                    onMouseLeave={e=>e.currentTarget.style.borderColor="#243528"}>
+                    <div style={{height:80,background:`linear-gradient(135deg,${folder.color}22,#0a1a10)`,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+                      <span style={{fontSize:36}}>{folder.emoji}</span>
+                      <div style={{position:"absolute",top:8,right:8}}><span style={{fontSize:10,color:sm?.color,background:sm?.bg,border:`1px solid ${sm?.color}44`,borderRadius:10,padding:"2px 8px",fontFamily:"monospace"}}>{sm?.label}</span></div>
+                    </div>
+                    <div style={{padding:12}}>
+                      <div style={{fontWeight:700,fontSize:13,color:"#edfaf2",marginBottom:4,lineHeight:1.3}}>{r.dishName}</div>
+                      <div style={{fontSize:11,color:"#527860",fontFamily:"monospace"}}>Serves {r.servings}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if(selected) return(
     <div style={{minHeight:"100vh",background:"#0a0f0d",color:"#cce8d4",fontFamily:"'Outfit',sans-serif",paddingBottom:60}}>
       <TopBar onBack={()=>setSelected(null)} title={selected.dishName}/>
       <div style={{maxWidth:600,margin:"0 auto",padding:"16px"}}>
+      <RecipeDetail recipe={selected} onBack={()=>setSelected(null)} onDelete={()=>{save(recipes.filter(x=>x.id!==selected.id));setSelected(null);}} showDelete={true}/>
         {selected.photo&&<div style={{borderRadius:14,overflow:"hidden",marginBottom:14,maxHeight:200}}><img src={selected.photo} alt={selected.dishName} style={{width:"100%",height:200,objectFit:"cover"}}/></div>}
         <div style={{background:"#162019",border:`1px solid ${LIB_SAFETY[selected.safetyLevel]?.color||"#3ddc72"}44`,borderRadius:14,padding:18,marginBottom:12}}>
           <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:10}}>
@@ -1054,9 +1400,36 @@ function RecipeLibrary({onBack}){
   return(
     <div style={{minHeight:"100vh",background:"#0a0f0d",color:"#cce8d4",fontFamily:"'Outfit',sans-serif",paddingBottom:60}}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet"/>
-      <TopBar onBack={onBack} title={`Recipe Library (${recipes.length})`}/>
-      <div style={{maxWidth:680,margin:"0 auto",padding:"16px"}}>
-        {!addMode?(
+      <TopBar onBack={onBack} title="Recipe Library"/>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"0"}}>
+        {/* Tab bar */}
+        <div style={{display:"flex",borderBottom:"1px solid #243528",background:"#0d1a10"}}>
+          {[["folders","📂 Meal Folders"],["my",`⭐ My Recipes (${recipes.length})`]].map(([k,lbl])=>(
+            <button key={k} onClick={()=>setLibTab(k)} style={{flex:1,padding:"13px 8px",border:"none",background:"transparent",color:libTab===k?"#3ddc72":"#527860",fontSize:13,fontWeight:libTab===k?700:400,cursor:"pointer",fontFamily:"monospace",borderBottom:`2px solid ${libTab===k?"#3ddc72":"transparent"}`}}>{lbl}</button>
+          ))}
+        </div>
+        <div style={{padding:"16px"}}>
+        {libTab==="folders"&&(
+          <div>
+            <div style={{fontSize:11,color:"#527860",fontFamily:"monospace",textTransform:"uppercase",letterSpacing:1,marginBottom:14}}>Meal Type Folders</div>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {Object.entries(LIB_FOLDERS).map(([key,folder])=>(
+                <div key={key} onClick={()=>setFolderView(key)}
+                  style={{background:"#112115",border:`1px solid ${folder.color}33`,borderRadius:16,padding:18,cursor:"pointer",transition:"all 0.2s",display:"flex",alignItems:"center",gap:16}}
+                  onMouseEnter={e=>{e.currentTarget.style.background="#172d1c";e.currentTarget.style.borderColor=folder.color+"66";}}
+                  onMouseLeave={e=>{e.currentTarget.style.background="#112115";e.currentTarget.style.borderColor=folder.color+"33";}}>
+                  <div style={{width:52,height:52,borderRadius:14,background:`${folder.color}22`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0}}>{folder.emoji}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:800,color:"#edfaf2",fontSize:16,fontFamily:"'Outfit',sans-serif",marginBottom:4}}>{key}</div>
+                    <div style={{fontSize:12,color:"#527860",lineHeight:1.5}}>{folder.recipes.length} recipes · Tap to browse</div>
+                  </div>
+                  <div style={{fontSize:20,color:folder.color}}>›</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {libTab==="my"&&!addMode&&(
           <>
             <button onClick={()=>setAddMode(true)} style={{width:"100%",background:"#3ddc72",color:"#061008",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Outfit',sans-serif",marginBottom:14}}>+ Add New Recipe</button>
             <div style={{background:"#162019",border:"1px solid #243528",borderRadius:14,padding:14,marginBottom:14}}>
